@@ -15,16 +15,16 @@ variable "sp_client_secret" {
 
 variable "network_rg" {
   description = "network resource group"
-  default="AzureHubVNET"
+  default="network rg name"
 }
 
 variable "vnet_name" {
   description = "vnet name"
-  default="AzureEUS2VNET1"
+  default="vnet name"
 }
 variable "subnet_name" {
   description = "subnet name"
-  default="AKS-SN2"
+  default="subnet"
 }
 
 variable "machine_type" {
