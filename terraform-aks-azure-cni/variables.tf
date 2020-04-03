@@ -14,17 +14,17 @@ variable "sp_client_secret" {
 }
 
 variable "network_rg" {
-  description = "network resource group"
-  default="network rg name"
+  description = "Existing network resource group"
+  default="your network rg name"
 }
 
 variable "vnet_name" {
-  description = "vnet name"
-  default="vnet name"
+  description = "Existing vnet name"
+  default="your vnet name"
 }
 variable "subnet_name" {
-  description = "subnet name"
-  default="subnet"
+  description = "Existing subnet name"
+  default="your subnet name"
 }
 
 variable "machine_type" {
