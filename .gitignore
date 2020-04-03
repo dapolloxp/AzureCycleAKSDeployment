@@ -4,4 +4,4 @@ terraform-aks-azure-cni/.terraform
 
 # Ignore state file
 
-.tfstate
+terraform-aks-azure-cni/.tfstate
