@@ -1,7 +1,10 @@
-# Ignore downloaded libaries
+# Local .terraform directories
+**/.terraform/*
 
-terraform-aks-azure-cni/.terraform
+# Local .terraform directories
 
-# Ignore state file
-
-terraform-aks-azure-cni/.tfstate
+terraform-aks-azure-cni/terraform.tfstate.backup
+terraform-aks-azure-cni/terraform.tfstate
+# .tfstate files
+**/*.terraform.tfstate*
+**/*.tfvars*
