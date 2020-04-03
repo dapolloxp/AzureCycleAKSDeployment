@@ -20,7 +20,7 @@ variable "network_rg" {
 
 variable "vnet_name" {
   description = "vnet name"
-  default="AzureHubVNET"
+  default="AzureEUS2VNET1"
 }
 variable "subnet_name" {
   description = "subnet name"
@@ -43,7 +43,7 @@ variable "service_cidr" {
 }
 variable "dns_service_ip" {
   description = "dns_service_ip"
-  default = "10.211.0.0/16"
+  default = "10.211.0.10"
 }
 variable "docker_bridge_cidr" {
   description = "Docker bridge CIDR"

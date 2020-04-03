@@ -9,6 +9,12 @@ resource "azurerm_resource_group" "aks_rg" {
   location = "${var.location}"
 }
 
+data "azurerm_subnet" "existing_vnet_subnet" {
+    name                 = "${var.subnet_name}"
+    virtual_network_name = "${var.vnet_name}"
+    resource_group_name  = "${var.network_rg}"
+}
+
 resource "azurerm_kubernetes_cluster" "aks_c" {
   name                = "${var.prefix}-cluster"
   location            = azurerm_resource_group.aks_rg.location
@@ -26,11 +32,24 @@ resource "azurerm_kubernetes_cluster" "aks_c" {
     client_id     = "unused_but_required_placeholder"
     client_secret = "unused_but_required_placeholder"
   }
+
+
+
+
+  network_profile  {
+    network_plugin = "azure"
+    service_cidr = "${var.service_cidr}"
+    dns_service_ip = "${var.dns_service_ip}"
+    docker_bridge_cidr = "${var.docker_bridge_cidr}"
+    load_balancer_sku = "standard"
+    
+  }
   
   default_node_pool {
     name                  = "defaultpool"
     vm_size               = "${var.machine_type}"
     node_count            = var.default_node_pool_size
+    vnet_subnet_id        = data.azurerm_subnet.existing_vnet_subnet.id
   }
 
   tags = {
