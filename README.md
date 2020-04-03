@@ -50,7 +50,7 @@ terraform apply
 Once the AKS cluster is deployed, the System Assigned Managed Identity for the AKS cluster and the User Assigned Managed Identity for the CycleCloud Pod must be permissioned.
 
 > [!IMPORTANT]
-> These instructions are based on the [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) and may be out of date.  Refer to source for the most up-to-date instructions.
+> These instructions are based on the [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) readme and may be out of date.  Refer to source for the most up-to-date instructions.
 
 First, permission the AKS Cluster's system-assigned identity following the instructions in [AAD Pod Identity Pre-requisites](https://github.com/Azure/aad-pod-identity/blob/master/docs/readmes/README.msi.md#pre-requisites---role-assignments) documentation.
 ```bash
@@ -63,6 +63,9 @@ az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_
 az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_POOL_CLIENT_ID}  --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/cc-aks-tf-ui
 
 ```
+
+
+# Launch the CycleCloud AKS Pod
 
 Get the AKS Credentials for the new cluster
 ```bash
