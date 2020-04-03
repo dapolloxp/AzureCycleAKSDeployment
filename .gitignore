@@ -1,0 +1,10 @@
+# Local .terraform directories
+**/.terraform/*
+
+# Local .terraform directories
+
+*/terraform-aks-azure-cni/terraform.tfstate.backup
+*/terraform-aks-azure-cni/terraform.tfstate
+# .tfstate files
+**/*.terraform.tfstate*
+**/*.tfvars*
