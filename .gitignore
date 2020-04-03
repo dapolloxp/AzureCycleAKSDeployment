@@ -1,1 +1,7 @@
+# Ignore downloaded libaries
+
 terraform-aks-azure-cni/.terraform
+
+# Ignore state file
+
+.tfstate
