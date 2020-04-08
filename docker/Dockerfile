@@ -27,7 +27,7 @@ ADD https://aka.ms/downloadazcopy-v10-linux /tmp/azcopy_linux_amd64_10.3.4.tar.g
 RUN tar xzf /tmp/azcopy_linux_amd64_10.3.4.tar.gz -C /tmp/ \
     && mv /tmp/azcopy_linux_amd64_10.3.4/azcopy /usr/local/bin/azcopy
 
-ADD yum install -y cyclecloud \
+RUN yum install -y cyclecloud \
     cp /opt/cycle_server/tools/cyclecloud-cli.zip /tmp/cyclecloud-cli.zip \
     yum remove -y cyclecloud
 
