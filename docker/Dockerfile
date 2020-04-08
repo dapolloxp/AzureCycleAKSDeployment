@@ -27,9 +27,17 @@ ADD https://aka.ms/downloadazcopy-v10-linux /tmp/azcopy_linux_amd64_10.3.4.tar.g
 RUN tar xzf /tmp/azcopy_linux_amd64_10.3.4.tar.gz -C /tmp/ \
     && mv /tmp/azcopy_linux_amd64_10.3.4/azcopy /usr/local/bin/azcopy
 
-RUN yum install -y cyclecloud \
-    cp /opt/cycle_server/tools/cyclecloud-cli.zip /tmp/cyclecloud-cli.zip \
-    yum remove -y cyclecloud
+RUN echo -e "[cyclecloud]"  >> /etc/yum.repos.d/cyclecloud.repo \
+    && echo -e "name=cyclecloud"  >> /etc/yum.repos.d/cyclecloud.repo \
+    && echo -e "baseurl=https://packages.microsoft.com/yumrepos/cyclecloud"  >> /etc/yum.repos.d/cyclecloud.repo \
+    && echo -e "gpgcheck=1"  >> /etc/yum.repos.d/cyclecloud.repo \
+    && echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc"  >> /etc/yum.repos.d/cyclecloud.repo \
+    && yum -y update \
+    && yum install -y cyclecloud \
+    && cp /opt/cycle_server/tools/cyclecloud-cli.zip /tmp/cyclecloud-cli.zip \
+    && /opt/cycle_server/cycle_server stop \
+    && yum remove -y cyclecloud \
+    && rm -rf /opt/cycle_server
 
 RUN cd /tmp \
     && unzip /tmp/cyclecloud-cli.zip \
