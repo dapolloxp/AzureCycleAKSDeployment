@@ -104,13 +104,13 @@ CYCLECLOUD_STORAGE="ccstorageuswest2"
 CYCLECLOUD_USER_PUBKEY="your SSH pub key here"
 CYCLECLOUD_CONTAINER_IMAGE="cccontainerreguswest2.azurecr.io/cyclecloud:latest"
 
-sed -i "s/%SUBSCRIPTION_ID%/${SUBSCRIPTION_ID}/g" ./cyclecloud.yaml
-sed -i "s/%CLIENT_ID%/${CLIENT_ID}/g" ./cyclecloud.yaml
-sed -i "s/%CYCLECLOUD_USERNAME%/${CYCLECLOUD_USERNAME}/g" ./cyclecloud.yaml
-sed -i "s/%CYCLECLOUD_PASSWORD%/${CYCLECLOUD_PASSWORD}/g" ./cyclecloud.yaml
-sed -i "s/%CYCLECLOUD_STORAGE%/${CYCLECLOUD_STORAGE}/g" ./cyclecloud.yaml
-sed -i "s/%CYCLECLOUD_USER_PUBKEY%/${CYCLECLOUD_USER_PUBKEY}/g" ./cyclecloud.yaml
-sed -i "s/%CYCLECLOUD_CONTAINER_IMAGE%/${CYCLECLOUD_CONTAINER_IMAGE}/g" ./cyclecloud.yaml
+sed -i.bak "s|%SUBSCRIPTION_ID%|${SUBSCRIPTION_ID}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CLIENT_ID%|${CLIENT_ID}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CYCLECLOUD_USERNAME%|${CYCLECLOUD_USERNAME}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CYCLECLOUD_PASSWORD%|${CYCLECLOUD_PASSWORD}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CYCLECLOUD_STORAGE%|${CYCLECLOUD_STORAGE}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CYCLECLOUD_USER_PUBKEY%|${CYCLECLOUD_USER_PUBKEY}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CYCLECLOUD_CONTAINER_IMAGE%|${CYCLECLOUD_CONTAINER_IMAGE}|g" ./cyclecloud.yaml
 
 kubectl apply -f cyclecloud.yaml
 ```
