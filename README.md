@@ -104,6 +104,7 @@ CYCLECLOUD_STORAGE="ccstorageuswest2"
 CYCLECLOUD_USER_PUBKEY="your SSH pub key here"
 CYCLECLOUD_CONTAINER_IMAGE="cccontainerreguswest2.azurecr.io/cyclecloud:latest"
 
+# Feel free to skip the sed commands and simply  edit the yaml file
 sed -i.bak "s|%SUBSCRIPTION_ID%|${SUBSCRIPTION_ID}|g" ./cyclecloud.yaml
 sed -i.bak "s|%CLIENT_ID%|${CLIENT_ID}|g" ./cyclecloud.yaml
 sed -i.bak "s|%CYCLECLOUD_USERNAME%|${CYCLECLOUD_USERNAME}|g" ./cyclecloud.yaml
