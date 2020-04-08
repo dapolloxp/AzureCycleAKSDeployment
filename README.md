@@ -65,7 +65,7 @@ az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_
 ```
 
 
-# Launch the CycleCloud AKS Pod
+## Launch the CycleCloud AKS Pod
 
 Get the AKS Credentials for the new cluster
 ```bash
