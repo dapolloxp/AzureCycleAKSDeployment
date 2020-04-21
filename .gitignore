@@ -8,3 +8,5 @@
 # .tfstate files
 **/*.terraform.tfstate*
 **/*.tfvars*
+terraform-aks-azure-cni/terraform.tfstate
+terraform-aks-azure-cni/terraform.tfstate.backup
