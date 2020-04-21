@@ -59,7 +59,7 @@ AGENT_POOL_CLIENT_ID=$( az aks show -g cc-aks-tf-rg -n cc-aks-tf-cluster --query
 
 az role assignment create --role "Virtual Machine Contributor" --assignee ${AGENT_POOL_CLIENT_ID} --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg
 az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_POOL_CLIENT_ID}  --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg
-az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_POOL_CLIENT_ID}  --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/cc-aks-tf-agentpool
+az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_POOL_CLIENT_ID}  --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/cc-aks-tf-cluster-agentpool
 az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_POOL_CLIENT_ID}  --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/cc-aks-tf-ui
 
 ```
