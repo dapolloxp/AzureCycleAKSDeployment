@@ -55,7 +55,7 @@ Once the AKS cluster is deployed, the System Assigned Managed Identity for the A
 First, permission the AKS Cluster's system-assigned identity following the instructions in [AAD Pod Identity Pre-requisites](https://github.com/Azure/aad-pod-identity/blob/master/docs/readmes/README.msi.md#pre-requisites---role-assignments) documentation.
 ```bash
 SUBSCRIPTION_ID=$( az account show --query id -o tsv )
-AGENT_POOL_CLIENT_ID=$( az aks show -g cc-aks-tf-rg -n cc-aks-tf --query identityProfile.kubeletidentity.clientId -o tsv )
+AGENT_POOL_CLIENT_ID=$( az aks show -g cc-aks-tf-rg -n cc-aks-tf-cluster --query identityProfile.kubeletidentity.clientId -o tsv )
 
 az role assignment create --role "Virtual Machine Contributor" --assignee ${AGENT_POOL_CLIENT_ID} --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg
 az role assignment create --role "Managed Identity Operator" --assignee ${AGENT_POOL_CLIENT_ID}  --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/cc-aks-tf-nodes-rg
