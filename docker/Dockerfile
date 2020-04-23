@@ -34,15 +34,20 @@ RUN echo -e "[cyclecloud]"  >> /etc/yum.repos.d/cyclecloud.repo \
     && echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc"  >> /etc/yum.repos.d/cyclecloud.repo \
     && yum -y update \
     && yum install -y cyclecloud \
-    && cp /opt/cycle_server/tools/cyclecloud-cli.zip /tmp/cyclecloud-cli.zip \
     && /opt/cycle_server/cycle_server stop \
-    && yum remove -y cyclecloud \
-    && rm -rf /opt/cycle_server
+    && sed -i 's/webServerMaxHeapSize\=2048M/webServerMaxHeapSize\=4096M/' /opt/cycle_server/config/cycle_server.properties \
+    && sed -i 's/webServerPort\=8080/webServerPort\=80/' /opt/cycle_server/config/cycle_server.properties \
+    && sed -i 's/webServerSslPort\=8443/webServerSslPort\=443/' /opt/cycle_server/config/cycle_server.properties \
+    && sed -i 's/webServerEnableHttps\=false/webServerEnableHttps=true/' /opt/cycle_server/config/cycle_server.properties
 
 RUN cd /tmp \
-    && unzip /tmp/cyclecloud-cli.zip \
+    && unzip /opt/cycle_server/tools/cyclecloud-cli.zip \
     && cd /tmp/cyclecloud-cli-installer \
-    && /tmp/cyclecloud-cli-installer/install.sh --system
+    && /tmp/cyclecloud-cli-installer/install.sh --system \
+    && rm -rf /tmp/cyclecloud-cli-installer
+
+RUN echo "Caching cycle_server install in container..." \
+    && mv /opt/cycle_server /opt_cycle_server
 
 ADD . /cs-install
 
