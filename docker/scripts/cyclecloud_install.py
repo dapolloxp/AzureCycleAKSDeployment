@@ -198,12 +198,16 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
 
     initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw)
 
-    print "Registering Azure subscription"
     output =  _catch_sys_error(["/usr/local/bin/cyclecloud", "account", "show", "azure"])
     if 'Credentials: azure' in output:
         print "Account \"azure\" already exists.   Skipping account setup..."
     else:
+        # wait until Managed Identity is ready for use before creating the Account
+        if use_managed_identity:
+            get_vm_managed_identity()
+
         # create the cloud provide account
+        print "Registering Azure subscription in CycleCloud"
         _catch_sys_error(["/usr/local/bin/cyclecloud", "account",
                         "create", "-f", azure_data_file])
 
@@ -253,6 +257,26 @@ def get_vm_metadata():
             print "Unable to obtain metadata after 30 tries"
             raise
 
+def get_vm_managed_identity():
+    # Managed Identity may  not be available immediately at VM startup...
+    # Test/Pause/Retry to see if it gets assigned
+    metadata_url = 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/'
+    metadata_req = Request(metadata_url, headers={"Metadata": True})
+
+    for i in range(30):
+        print "Fetching managed identity"
+        metadata_response = urlopen(metadata_req, timeout=2)
+
+        try:
+            return json.load(metadata_response)
+        except ValueError as e:
+            print "Failed to get managed identity %s" % e
+            print "    Retrying"
+            sleep(10)
+            continue
+        except:
+            print "Unable to obtain managed identity after 30 tries"
+            raise    
 
 def start_cc():
     import glob
