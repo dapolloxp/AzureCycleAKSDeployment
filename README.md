@@ -25,13 +25,25 @@ az group create --name cccontainerreg-rg --location westus2
 az acr create --resource-group cccontainerreg-rg --name cccontainerreguswest2 --sku Premium
 ```
 
-Build and Deploy container to ACR
+### CycleCloud 8.x
+Next, build and deploy the CycleCloud 8 container to ACR as follows:
 ``` bash
-cd docker
+cd docker/cyclecloud8
 az acr login -n cccontainerreguswest2
-docker build -t cccontainerreguswest2.azurecr.io/cyclecloud:latest .
-docker push cccontainerreguswest2.azurecr.io/cyclecloud
+docker build -t cccontainerreguswest2.azurecr.io/cyclecloud8:latest .
+docker push cccontainerreguswest2.azurecr.io/cyclecloud8:latest
 ```
+
+
+### CycleCloud 7.x
+If you require CycleCloud 7.9.x, you can build and deploy a 7.9 container to ACR as follows:
+``` bash
+cd docker/cyclecloud7
+az acr login -n cccontainerreguswest2
+docker build -t cccontainerreguswest2.azurecr.io/cyclecloud7:latest .
+docker push cccontainerreguswest2.azurecr.io/cyclecloud7:latest
+```
+
 
 ## Deploy the AKS cluster
 
@@ -90,6 +102,12 @@ CLIENT_ID=$( az identity show --resource-group cc-aks-tf-nodes-rg --name cc-aks-
 az role assignment create --assignee ${CLIENT_ID} --role=Contributor --scope=/subscriptions/${SUBSCRIPTION_ID}
 ```
 
+Optionally, create a new Resource Group to hold the compute cluster resources (if you do not already have a target Resource Group).
+This should generally be a different Resource Group from the AKS nodes Resource Group.
+```bash
+az group create -l westus2 -n cccomputerguswest2
+```
+
 Finally, we're ready to deploy the CycleCloud Pod.   By default, this deployment will have a public IP.  To disable, the public IP, uncomment the "annotations" in the Service definition in `cyclecloud.yaml`.
 
 > [!IMPORTANT]
@@ -102,7 +120,9 @@ CYCLECLOUD_USERNAME="your_username"
 CYCLECLOUD_PASSWORD="your_password"
 CYCLECLOUD_STORAGE="ccstorageuswest2"
 CYCLECLOUD_USER_PUBKEY="your SSH pub key here"
-CYCLECLOUD_CONTAINER_IMAGE="cccontainerreguswest2.azurecr.io/cyclecloud:latest"
+# Use the cyclecloud7:latest tag for a CycleCloud 7.9.x container instead of CycleCloud 8
+CYCLECLOUD_CONTAINER_IMAGE="cccontainerreguswest2.azurecr.io/cyclecloud8:latest"
+CYCLECLOUD_RESOURCE_GROUP="cccomputerguswest2"
 
 # Feel free to skip the sed commands and simply  edit the yaml file
 sed -i.bak "s|%SUBSCRIPTION_ID%|${SUBSCRIPTION_ID}|g" ./cyclecloud.yaml
@@ -112,6 +132,7 @@ sed -i.bak "s|%CYCLECLOUD_PASSWORD%|${CYCLECLOUD_PASSWORD}|g" ./cyclecloud.yaml
 sed -i.bak "s|%CYCLECLOUD_STORAGE%|${CYCLECLOUD_STORAGE}|g" ./cyclecloud.yaml
 sed -i.bak "s|%CYCLECLOUD_USER_PUBKEY%|${CYCLECLOUD_USER_PUBKEY}|g" ./cyclecloud.yaml
 sed -i.bak "s|%CYCLECLOUD_CONTAINER_IMAGE%|${CYCLECLOUD_CONTAINER_IMAGE}|g" ./cyclecloud.yaml
+sed -i.bak "s|%CYCLECLOUD_RESOURCE_GROUP%|${CYCLECLOUD_RESOURCE_GROUP}|g" ./cyclecloud.yaml
 
 kubectl apply -f cyclecloud.yaml
 ```

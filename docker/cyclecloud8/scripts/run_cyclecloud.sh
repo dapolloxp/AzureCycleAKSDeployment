@@ -10,8 +10,9 @@ if [ ! -d "/opt/cycle_server" ] && [ -d "/opt_cycle_server" ]; then
 else
    rm -rf /opt_cycle_server
 fi
-python /cs-install/scripts/cyclecloud_install.py --acceptTerms \
-    --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --publickey="${CYCLECLOUD_USER_PUBKEY}" --storageAccount=${CYCLECLOUD_STORAGE} ${DRYRUN}
+
+python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \
+    --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --publickey="${CYCLECLOUD_USER_PUBKEY}" --storageAccount=${CYCLECLOUD_STORAGE} --resourceGroup=${CYCLECLOUD_RESOURCE_GROUP} ${DRYRUN}
 
 
 #keep Container alive permanently
