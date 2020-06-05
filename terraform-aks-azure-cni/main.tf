@@ -9,6 +9,7 @@ resource "azurerm_resource_group" "aks_rg" {
   location = "${var.location}"
 }
 
+
 data "azurerm_subnet" "existing_vnet_subnet" {
     name                 = "${var.subnet_name}"
     virtual_network_name = "${var.vnet_name}"
@@ -24,7 +25,13 @@ resource "azurerm_kubernetes_cluster" "aks_c" {
   kubernetes_version  = "${var.kubernetes_version}"
   identity            {
     type = "SystemAssigned"
-  } 
+  }
+  linux_profile {
+    admin_username = "azureuser"
+    ssh_key {
+      key_data = "${var.ssh_key}"
+    }
+  }
 
   # Placeholder service_principal (and client_id and client_secret) must currently  be present 
   # even if using the SystemAssigned Identity
@@ -32,7 +39,28 @@ resource "azurerm_kubernetes_cluster" "aks_c" {
     client_id     = "unused_but_required_placeholder"
     client_secret = "unused_but_required_placeholder"
   }
+  provisioner "local-exec" {
+    # Load credentials to local environment so subsequent kubectl commands can be run
+    command = <<EOS
+      az aks get-credentials --resource-group ${azurerm_resource_group.aks_rg.name} --name ${self.name} --overwrite-existing;
+EOS
+  }
+  provisioner "local-exec" {
+    # Load credentials to local environment so subsequent kubectl commands can be run
+    when = create
+    command = "kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml"
+  }
 
+  provisioner "local-exec" {
+    # Load credentials to local environment so subsequent kubectl commands can be run
+    when = create
+    command = "kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/mic-exception.yaml"
+  }
+
+  provisioner "local-exec" {
+    when = create
+    command = "az aks update -n ${azurerm_kubernetes_cluster.aks_c.name} -g ${azurerm_resource_group.aks_rg.name} --attach-acr ${var.acr_id}"
+  }
 
 
 
