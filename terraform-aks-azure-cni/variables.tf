@@ -50,6 +50,10 @@ variable "docker_bridge_cidr" {
   default = "172.17.0.1/16"
 }
 
+variable "acr_id" {
+  description = "ACR Resource ID"
+  default = "Your ACR Resource ID"
+}
 
 variable "location" {
   description = "The Azure Region in which to run CycleCloud"
@@ -58,5 +62,10 @@ variable "location" {
 
 variable "kubernetes_version" {
     description = "The Kubernetes version to use for the cluster."
-    default =  "1.16.7"
+    default =  "1.16.8"
+}
+
+variable "ssh_key" {
+    description = "SSH Key"
+    default = "place_holder"
 }
