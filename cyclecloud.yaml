@@ -75,6 +75,8 @@ spec:
           value: "%CYCLECLOUD_STORAGE%"
         - name: CYCLECLOUD_USER_PUBKEY
           value: "%CYCLECLOUD_USER_PUBKEY%"
+        - name: CYCLECLOUD_RESOURCE_GROUP
+          value: "%CYCLECLOUD_RESOURCE_GROUP%"
         image: %CYCLECLOUD_CONTAINER_IMAGE%
         resources:
           requests:

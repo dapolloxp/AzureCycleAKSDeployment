@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:centos8
 
 WORKDIR /cs-install
 ENV CS_ROOT /opt/cycle_server
@@ -6,7 +6,7 @@ ENV BACKUPS_DIRECTORY /azurecyclecloud
 
 
 RUN yum update -y \
-    && yum install -y deltarpm \
+    && echo \
     && yum install -y java-1.8.0-openjdk \
     && yum install -y vim-enhanced \
     && yum install -y wget \
@@ -33,7 +33,7 @@ RUN echo -e "[cyclecloud]"  >> /etc/yum.repos.d/cyclecloud.repo \
     && echo -e "gpgcheck=1"  >> /etc/yum.repos.d/cyclecloud.repo \
     && echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc"  >> /etc/yum.repos.d/cyclecloud.repo \
     && yum -y update \
-    && yum install -y cyclecloud \
+    && yum install -y cyclecloud8 \
     && /opt/cycle_server/cycle_server stop \
     && sed -i 's/webServerMaxHeapSize\=2048M/webServerMaxHeapSize\=4096M/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerPort\=8080/webServerPort\=80/' /opt/cycle_server/config/cycle_server.properties \
@@ -44,7 +44,8 @@ RUN cd /tmp \
     && unzip /opt/cycle_server/tools/cyclecloud-cli.zip \
     && cd /tmp/cyclecloud-cli-installer \
     && /tmp/cyclecloud-cli-installer/install.sh --system \
-    && rm -rf /tmp/cyclecloud-cli-installer
+    && rm -rf /tmp/cyclecloud-cli-installer \
+    && alternatives --set python /usr/bin/python3
 
 RUN echo "Caching cycle_server install in container..." \
     && mv /opt/cycle_server /opt_cycle_server
