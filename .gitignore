@@ -1,6 +1,8 @@
 # Local .terraform directories
 **/.terraform/*
-
+.DS_Store
+perf-improvements/
+terraform-aks-azure-cni/cyclecloud/
 # Local .terraform directories
 
 */terraform-aks-azure-cni/terraform.tfstate.backup
