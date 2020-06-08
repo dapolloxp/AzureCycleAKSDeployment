@@ -365,7 +365,7 @@ def already_installed():
 
 def download_install_cc():
     print("Installing Azure CycleCloud server")
-    _catch_sys_error(["yum", "install", "-y", "cyclecloud"])
+    _catch_sys_error(["yum", "install", "-y", "cyclecloud8"])
 
 
 def configure_msft_yum_repos():
