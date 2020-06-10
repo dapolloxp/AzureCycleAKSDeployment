@@ -31,5 +31,5 @@ variable "location" {
 
 variable "kubernetes_version" {
     description = "The Kubernetes version to use for the cluster."
-    default =  "1.16.7"
+    default =  "1.16.9"
 }
