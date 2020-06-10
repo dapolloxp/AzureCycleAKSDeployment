@@ -11,6 +11,7 @@ RUN yum update -y \
     && yum install -y vim-enhanced \
     && yum install -y wget \
     && yum install -y unzip \
+    && yum install -y ncurses \
     && rpm --import https://packages.microsoft.com/keys/microsoft.asc \
     && echo -e "[azure-cli]" > /etc/yum.repos.d/azure-cli.repo \
     && echo -e "name=Azure CLI" >> /etc/yum.repos.d/azure-cli.repo \
