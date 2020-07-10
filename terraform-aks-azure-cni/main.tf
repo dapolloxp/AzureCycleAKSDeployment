@@ -1,6 +1,6 @@
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=2.0.0"
+  version = "=2.16"
   features {}
 }
 
@@ -33,12 +33,6 @@ resource "azurerm_kubernetes_cluster" "aks_c" {
     }
   }
 
-  # Placeholder service_principal (and client_id and client_secret) must currently  be present 
-  # even if using the SystemAssigned Identity
-  service_principal {
-    client_id     = "unused_but_required_placeholder"
-    client_secret = "unused_but_required_placeholder"
-  }
   provisioner "local-exec" {
     # Load credentials to local environment so subsequent kubectl commands can be run
     command = <<EOS
