@@ -33,3 +33,11 @@ variable "kubernetes_version" {
     description = "The Kubernetes version to use for the cluster."
     default =  "1.16.9"
 }
+
+variable "acr_id" {
+  description = "ACR Resource ID"
+}
+
+variable "ssh_key" {
+    description = "Public SSH Key for AKS nodepool access"
+}
