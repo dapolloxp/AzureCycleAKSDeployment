@@ -10,12 +10,12 @@ spec:
   replicas: {{ .Values.cycle.replicas }}
   selector:
     matchLabels:
-      {{- include "testing.selectorLabels" . | nindent 6 }}
+      {{- include "cyclecloud.selectorLabels" . | nindent 6 }}
   strategy: {}
   template:
     metadata:
       labels:
-        {{- include "testing.selectorLabels" . | nindent 8 }}
+        {{- include "cyclecloud.selectorLabels" . | nindent 8 }}
         aadpodidbinding: cc-aks-tf-ui-selector
     spec:
       tolerations:

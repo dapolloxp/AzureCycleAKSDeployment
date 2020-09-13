@@ -11,4 +11,4 @@ spec:
     port: {{ .Values.service.port }}
     targetPort: 443
   selector:
-    {{- include "testing.selectorLabels" . | nindent 4 }}
+    {{- include "cyclecloud.selectorLabels" . | nindent 4 }}
