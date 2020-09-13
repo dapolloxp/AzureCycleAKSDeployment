@@ -1,0 +1,4 @@
+azureIdentity:
+  resourceID: /subscriptions/%SUBSCRIPTION_ID%/resourcegroups/cc-aks-tf-nodes-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/cc-aks-tf-ui
+  clientID: 123
+

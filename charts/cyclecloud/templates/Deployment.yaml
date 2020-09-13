@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: cycle
+    aadpodidbinding: cc-aks-tf-ui-selector
+    {{- include "testing.labels" . | nindent 4 }}
+  name: cycle
+spec:
+  replicas: {{ .Values.cycle.replicas }}
+  selector:
+    matchLabels:
+      run: cycle
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        run: cycle
+        aadpodidbinding: cc-aks-tf-ui-selector
+    spec:
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+      containers:
+      - env:
+        - name: JAVA_HEAP_SIZE
+          value: "4096"
+        - name: CYCLECLOUD_USERNAME
+          value: "{{ .Values.cycle.username }}"
+        - name: CYCLECLOUD_PASSWORD
+          value: "{{ .Values.cycle.password }}"
+        - name: CYCLECLOUD_STORAGE
+          value: "{{ .Values.cycle.storage }}"
+        - name: CYCLECLOUD_USER_PUBKEY
+          value: "{{ .Values.cycle.userPubKey }}"
+        - name: CYCLECLOUD_RESOURCE_GROUP
+          value: "{{ .Values.cycle.resourceGroup }}"
+        image: "{{ .Values.cycle.containerImage }}"
+        resources:
+          requests:
+            memory: "10Gi"
+          limits:
+            memory: "10Gi"
+        command: ["/bin/bash"]
+        args: ["-c", "chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
+        name: cycle
+        ports:
+        - containerPort: 443
+
+        livenessProbe:
+          httpGet:
+            path: /health_monitor
+            port: 443
+            scheme: HTTPS
+          failureThreshold: 15
+          timeoutSeconds: 60
+          periodSeconds: 60
+          initialDelaySeconds: 400
+
+        readinessProbe:
+          httpGet:
+            path: /health_monitor
+            port: 443
+            scheme: HTTPS
+          failureThreshold: 30
+          initialDelaySeconds: 600
+          periodSeconds: 10
+
+        volumeMounts:
+        - mountPath: "/opt"
+          name: cyclecloud-data-volume
+      volumes:
+      - name: cyclecloud-data-volume
+        persistentVolumeClaim:
+          claimName: cyclecloud-data
