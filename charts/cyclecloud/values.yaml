@@ -2,3 +2,12 @@ azureIdentity:
   resourceID: /subscriptions/%SUBSCRIPTION_ID%/resourcegroups/cc-aks-tf-nodes-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/cc-aks-tf-ui
   clientID: 123
 
+cycle:
+  replicas: 1
+  
+  username: 123
+  password: 123
+  storage: 123
+  userPubKey: 123
+  resourceGroup: 123
+  containerImage: 123
