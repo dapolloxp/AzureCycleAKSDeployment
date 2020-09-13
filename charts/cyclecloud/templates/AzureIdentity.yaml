@@ -16,5 +16,5 @@ metadata:
   labels:
     {{- include "cyclecloud.labels" . | nindent 4 }}
 spec:
-  azureIdentity: cc-aks-tf-ui
+  azureIdentity: {{ include "cyclecloud.fullname" . }}
   selector: cc-aks-tf-ui-selector
