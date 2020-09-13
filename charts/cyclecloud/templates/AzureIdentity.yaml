@@ -1,9 +1,9 @@
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentity
 metadata:
-  name: cc-aks-tf-ui
+  name: {{ include "cyclecloud.fullname" . }}
   labels:
-    {{- include "testing.labels" . | nindent 4 }}
+    {{- include "cyclecloud.labels" . | nindent 4 }}
 spec:
   type: 0
   resourceID: {{ .Values.azureIdentity.resourceID }}
@@ -12,9 +12,9 @@ spec:
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentityBinding
 metadata:
-  name: cc-aks-tf-ui-identity-binding
+  name: {{ include "cyclecloud.fullname" . }}
   labels:
-    {{- include "testing.labels" . | nindent 4 }}
+    {{- include "cyclecloud.labels" . | nindent 4 }}
 spec:
   azureIdentity: cc-aks-tf-ui
   selector: cc-aks-tf-ui-selector

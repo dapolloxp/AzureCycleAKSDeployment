@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: cyclecloud-data
+  name: {{ include "cyclecloud.fullname" . }}
   labels:
-    {{- include "testing.labels" . | nindent 4 }}
+    {{- include "cyclecloud.labels" . | nindent 4 }}
 spec:
   accessModes:
   - ReadWriteOnce

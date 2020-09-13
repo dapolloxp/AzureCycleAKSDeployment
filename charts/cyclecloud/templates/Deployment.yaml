@@ -3,20 +3,19 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    run: cycle
     aadpodidbinding: cc-aks-tf-ui-selector
-    {{- include "testing.labels" . | nindent 4 }}
-  name: cycle
+    {{- include "cyclecloud.labels" . | nindent 4 }}
+  name: {{ include "cyclecloud.fullname" . }}
 spec:
   replicas: {{ .Values.cycle.replicas }}
   selector:
     matchLabels:
-      run: cycle
+      {{- include "testing.selectorLabels" . | nindent 6 }}
   strategy: {}
   template:
     metadata:
       labels:
-        run: cycle
+        {{- include "testing.selectorLabels" . | nindent 8 }}
         aadpodidbinding: cc-aks-tf-ui-selector
     spec:
       tolerations:
