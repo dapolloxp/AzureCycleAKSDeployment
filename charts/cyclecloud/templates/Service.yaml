@@ -4,6 +4,8 @@ metadata:
   name: {{ include "cyclecloud.fullname" . }}
   labels:
     {{- include "cyclecloud.labels" . | nindent 4 }}
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   type: {{ .Values.service.type }}
   ports:
