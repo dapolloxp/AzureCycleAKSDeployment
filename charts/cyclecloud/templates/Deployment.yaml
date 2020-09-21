@@ -23,6 +23,11 @@ spec:
         operator: "Equal"
         value: "spot"
         effect: "NoSchedule"
+      # Set non-root user id (cycle_server) for volume ownership
+      securityContext:
+        runAsUser: 169
+        runAsGroup: 169
+        fsGroup: 169
       containers:
       - env:
         - name: JAVA_HEAP_SIZE
@@ -47,12 +52,12 @@ spec:
         args: ["-c", "chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
         name: cycle
         ports:
-        - containerPort: 443
+        - containerPort: 8443
 
         livenessProbe:
           httpGet:
             path: /health_monitor
-            port: 443
+            port: 8443
             scheme: HTTPS
           failureThreshold: 15
           timeoutSeconds: 60
@@ -62,7 +67,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /health_monitor
-            port: 443
+            port: 8443
             scheme: HTTPS
           failureThreshold: 30
           initialDelaySeconds: 600
