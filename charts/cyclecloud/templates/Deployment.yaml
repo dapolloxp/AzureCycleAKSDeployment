@@ -25,9 +25,9 @@ spec:
         effect: "NoSchedule"
       # Set non-root user id (cycle_server) for volume ownership
       securityContext:
-        runAsUser: 169
-        runAsGroup: 169
-        fsGroup: 169
+        runAsUser: {{ .Values.cycle.uid }}
+        runAsGroup: {{ .Values.cycle.gid }}
+        fsGroup: {{ .Values.cycle.gid }}
       containers:
       - env:
         - name: JAVA_HEAP_SIZE
