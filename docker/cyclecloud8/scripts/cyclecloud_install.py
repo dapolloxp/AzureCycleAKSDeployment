@@ -87,6 +87,14 @@ def create_user_credential(username, public_key=None):
     config_path = os.path.join(cycle_root, "config/data/")
     print("Copying config to {}".format(config_path))
     copy2(credential_data_file, config_path)
+
+def generate_password_string():
+    random_pw_chars = ([random.choice(ascii_lowercase) for _ in range(20)] +
+                        [random.choice(ascii_uppercase) for _ in range(20)] +
+                        [random.choice(digits) for _ in range(10)])
+    random.shuffle(random_pw_chars)
+    return ''.join(random_pw_chars)
+
   
 def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, application_id, application_secret,
                              admin_user, azure_cloud, accept_terms, password, storageAccount):
@@ -113,11 +121,7 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         print('Password specified, using it as the admin password')
         cyclecloud_admin_pw = password
     else:
-        random_pw_chars = ([random.choice(ascii_lowercase) for _ in range(20)] +
-                           [random.choice(ascii_uppercase) for _ in range(20)] +
-                           [random.choice(digits) for _ in range(10)])
-        random.shuffle(random_pw_chars)
-        cyclecloud_admin_pw = ''.join(random_pw_chars)
+        cyclecloud_admin_pw = generate_password_string()
 
     if storageAccount:
         print('Storage account specified, using it as the default locker')
@@ -220,7 +224,7 @@ def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw):
 
     print("Initializing cylcecloud CLI")
     _catch_sys_error(["/usr/local/bin/cyclecloud", "initialize", "--loglevel=debug", "--batch",
-                      "--url=https://localhost", "--verify-ssl=false", "--username=%s" % admin_user, password_flag])
+                      "--url=https://localhost:8443", "--verify-ssl=false", "--username=%s" % admin_user, password_flag])
 
 
 def letsEncrypt(fqdn, location):
@@ -325,10 +329,10 @@ def modify_cs_config():
             for line in cs_config:
                 if line.startswith('webServerMaxHeapSize='):
                     new_config.write('webServerMaxHeapSize=4096M\n')
-                elif line.startswith('webServerPort='):
-                    new_config.write('webServerPort=80\n')
-                elif line.startswith('webServerSslPort='):
-                    new_config.write('webServerSslPort=443\n')
+                # elif line.startswith('webServerPort='):
+                #     new_config.write('webServerPort=80\n')
+                # elif line.startswith('webServerSslPort='):
+                #     new_config.write('webServerSslPort=443\n')
                 elif line.startswith('webServerEnableHttps='):
                     new_config.write('webServerEnableHttps=true\n')
                 else:
@@ -365,8 +369,30 @@ def already_installed():
 
 def download_install_cc():
     print("Installing Azure CycleCloud server")
-    _catch_sys_error(["yum", "install", "-y", "cyclecloud8"])
 
+    if "ubuntu" in str(platform.platform()).lower():
+        _catch_sys_error(["apt", "install", "-y", "cyclecloud8"])
+    else:
+        _catch_sys_error(["yum", "install", "-y", "cyclecloud8"])
+
+def configure_msft_repos():
+    if "ubuntu" in str(platform.platform()).lower():
+        configure_msft_apt_repos()
+    else:
+        configure_msft_yum_repos()
+
+def configure_msft_apt_repos():
+    print("Configuring Microsoft apt repository for CycleCloud install")
+    _catch_sys_error(
+        ["wget", "-qO", "-", "https://packages.microsoft.com/keys/microsoft.asc", "|", "apt-key", "add", "-"])
+    
+    lsb_release = _catch_sys_error(["lsb_release", "-cs"])
+    with open('/etc/apt/sources.list.d/azure-cli.list', 'w') as f:
+        f.write("deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {} main".format(lsb_release))
+
+    with open('/etc/apt/sources.list.d/cyclecloud.list', 'w') as f:
+        f.write("deb [arch=amd64] https://packages.microsoft.com/repos/cyclecloud {} main".format(lsb_release))
+    _catch_sys_error(["apt", "-y", "update"])
 
 def configure_msft_yum_repos():
     print("Configuring Microsoft yum repository for CycleCloud install")
@@ -395,11 +421,16 @@ gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 
 def install_pre_req():
     print("Installing pre-requisites for CycleCloud server")
-    _catch_sys_error(["yum", "install", "-y", "java-1.8.0-openjdk-headless"])
 
     # not strictly needed, but it's useful to have the AZ CLI
     # Taken from https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-yum?view=azure-cli-latest
-    _catch_sys_error(["yum", "install", "-y", "azure-cli"])
+
+    if "ubuntu" in str(platform.platform()).lower():
+        _catch_sys_error(["apt", "install", "-y", "openjdk-8-jre-headless"])
+        _catch_sys_error(["apt", "install", "-y", "azure-cli"])
+    else:
+        _catch_sys_error(["yum", "install", "-y", "java-1.8.0-openjdk-headless"])
+        _catch_sys_error(["yum", "install", "-y", "azure-cli"])
 
 
 def main():
@@ -472,7 +503,7 @@ def main():
     print("Debugging arguments: %s" % args)
 
     if not already_installed():
-        configure_msft_yum_repos()
+        configure_msft_repos()
         install_pre_req()
         download_install_cc()
         modify_cs_config()
@@ -501,8 +532,8 @@ def main():
     if args.useLetsEncrypt:
         letsEncrypt(args.hostname, vm_metadata["compute"]["location"])
 
-    #  TODO: Replace with list of initial usernames/pub. keys
-    create_user_credential(args.username, args.publickey)
+    #  Create user requires root privileges
+    # create_user_credential(args.username, args.publickey)
 
     clean_up()
 

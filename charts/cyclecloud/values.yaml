@@ -8,6 +8,8 @@ azureIdentity:
 cycle:
   replicas: 1
   
+  uid: 1169
+  gid: 1169
   username: 123
   password: 123
   storage: 123

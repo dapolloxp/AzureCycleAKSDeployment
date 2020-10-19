@@ -4,11 +4,11 @@ set -e
 
 # If CycleCloud install was locally cached, move it into place now...
 # Useful in locked-down environments where yum is blocked
-if [ ! -d "/opt/cycle_server" ] && [ -d "/opt_cycle_server" ]; then
+if [ ! -d "/opt/cycle_server" ] && [ -d "/opt_cycle_server/cycle_server" ]; then
    echo "Moving cyclecloud install from container to persistent disk on first start..."
-   mv /opt_cycle_server /opt/cycle_server
+   mv /opt_cycle_server/cycle_server /opt/cycle_server
 else
-   rm -rf /opt_cycle_server
+   rm -rf /opt_cycle_server/cycle_server
 fi
 
 python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \

@@ -1,4 +1,4 @@
-FROM centos:centos8
+FROM ubuntu:groovy
 
 WORKDIR /cs-install
 ENV CS_UID 1169
@@ -6,47 +6,41 @@ ENV CS_GID 1169
 ENV CS_ROOT /opt/cycle_server
 ENV BACKUPS_DIRECTORY /azurecyclecloud
 
+ARG DEBIAN_FRONTEND=noninteractive
 ADD https://aka.ms/downloadazcopy-v10-linux /tmp/azcopy_linux.tar.gz
 
-RUN yum update -y \
-    && echo \
-    && yum install -y java-1.8.0-openjdk \
-    && yum install -y vim-enhanced \
-    && yum install -y wget \
-    && yum install -y unzip \
-    && yum install -y ncurses \
-    && rpm --import https://packages.microsoft.com/keys/microsoft.asc \
-    && echo -e "[azure-cli]" > /etc/yum.repos.d/azure-cli.repo \
-    && echo -e "name=Azure CLI" >> /etc/yum.repos.d/azure-cli.repo \
-    && echo -e "baseurl=https://packages.microsoft.com/yumrepos/azure-cli" >> /etc/yum.repos.d/azure-cli.repo \
-    && echo -e "enabled=1" >> /etc/yum.repos.d/azure-cli.repo \
-    && echo -e "gpgcheck=1" >> /etc/yum.repos.d/azure-cli.repo \
-    && echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> /etc/yum.repos.d/azure-cli.repo \
-    && echo -e "[cyclecloud]"  >> /etc/yum.repos.d/cyclecloud.repo \
-    && echo -e "name=cyclecloud"  >> /etc/yum.repos.d/cyclecloud.repo \
-    && echo -e "baseurl=https://packages.microsoft.com/yumrepos/cyclecloud"  >> /etc/yum.repos.d/cyclecloud.repo \
-    && echo -e "gpgcheck=1"  >> /etc/yum.repos.d/cyclecloud.repo \
-    && echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc"  >> /etc/yum.repos.d/cyclecloud.repo \
-    && yum -y update \
-    && yum install -y azure-cli \
+# hard-coded "bionic" should be replaced with "$(lsb_release -cs)"
+RUN apt update -y \
+    && apt upgrade -y \
+    && apt install -y  apt-utils openjdk-8-jre-headless vim wget gnupg2 unzip libncurses5 ca-certificates curl apt-transport-https lsb-release
+
+
+RUN apt update -y \
+    && wget -qO - https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ bionic main" > /etc/apt/sources.list.d/azure-cli.list \
+    && apt -y update \
+    && apt install -y azure-cli \
     && tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/ \
     && mv /tmp/azcopy_linux*/azcopy /usr/local/bin/azcopy \
-    && rm -rf /tmp/azcopy_linux*
+    && rm -rf /tmp/azcopy_linux* \
+    && echo "deb https://packages.microsoft.com/repos/cyclecloud bionic main" > /etc/apt/sources.list.d/cyclecloud.list \
+    && apt -y update
 
 RUN groupadd -g ${CS_GID} cycle_server \
     && useradd -u ${CS_UID} -g ${CS_GID} -m -d /opt/cycle_server cycle_server \
-    && yum install -y cyclecloud8 \
+    && apt install -y cyclecloud8 \
     && /opt/cycle_server/cycle_server stop \
     && sed -i 's/webServerMaxHeapSize\=2048M/webServerMaxHeapSize\=4096M/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerPort\=8080/webServerPort\=8080/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerSslPort\=8443/webServerSslPort\=8443/' /opt/cycle_server/config/cycle_server.properties \
-    && sed -i 's/webServerEnableHttps\=false/webServerEnableHttps=true/' /opt/cycle_server/config/cycle_server.properties
+    && sed -i 's/webServerEnableHttps\=false/webServerEnableHttps=true/' /opt/cycle_server/config/cycle_server.properties \
+    && apt install -y python3-venv \
     && cd /tmp \
     && unzip /opt/cycle_server/tools/cyclecloud-cli.zip \
     && cd /tmp/cyclecloud-cli-installer \
     && /tmp/cyclecloud-cli-installer/install.sh --system \
     && rm -rf /tmp/cyclecloud-cli-installer \
-    && alternatives --set python /usr/bin/python3
+    && update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
     && echo "Caching cycle_server install in container..." \
     && mkdir -p /opt_cycle_server \
     && mv /opt/cycle_server /opt_cycle_server/ \
@@ -62,5 +56,4 @@ RUN chown -R cycle_server:cycle_server /cs-install
 # (NOTE: This disallows use of privileged ports 80, 443
 #        Instead, we'll bind port 8443 and use an AKS Service to port map 443->8443)
 USER cycle_server
-
 
