@@ -55,8 +55,6 @@ spec:
         command: ["/bin/bash"]
         securityContext:
           allowPrivilegeEscalation: false  
-          runAsUser: {{ .Values.cycle.uid }}
-          runAsGroup: {{ .Values.cycle.gid }}
         args: ["-c", "chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
         name: cycle
         ports:
