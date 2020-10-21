@@ -12,3 +12,8 @@ terraform-aks-azure-cni/cyclecloud/
 **/*.tfvars*
 terraform-aks-azure-cni/terraform.tfstate
 terraform-aks-azure-cni/terraform.tfstate.backup
+
+*.tgz
+terraform/terraform.tfstate
+values.yaml
+terraform/terraform.tfstate.backup
