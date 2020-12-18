@@ -5,6 +5,7 @@ import argparse
 import json
 import re
 import random
+import platform
 from string import ascii_uppercase, ascii_lowercase, digits
 from subprocess import CalledProcessError, check_output
 from os import path, listdir, chdir, fdopen, remove
