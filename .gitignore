@@ -17,3 +17,7 @@ terraform-aks-azure-cni/terraform.tfstate.backup
 terraform/terraform.tfstate
 values.yaml
 terraform/terraform.tfstate.backup
+
+david.values.yaml
+install_instructures.txt
+test.yaml
