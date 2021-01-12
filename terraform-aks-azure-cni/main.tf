@@ -16,6 +16,10 @@ data "azurerm_subnet" "existing_vnet_subnet" {
     resource_group_name  = "${var.network_rg}"
 }
 
+data "azurerm_resource_group" "vnet_rg" {
+    name = "${var.network_rg}"
+}
+
 resource "azurerm_kubernetes_cluster" "aks_c" {
   name                = "${var.prefix}-cluster"
   location            = azurerm_resource_group.aks_rg.location
@@ -49,6 +53,18 @@ EOS
     # Load credentials to local environment so subsequent kubectl commands can be run
     when = create
     command = "kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/mic-exception.yaml"
+  }
+
+  provisioner "local-exec" {
+    when = create
+    command = <<EOF
+     aksid=$(az aks show -g ${azurerm_resource_group.aks_rg.name} -n ${azurerm_kubernetes_cluster.aks_c.name} --query identityProfile.kubeletidentity.clientId -otsv);
+     aksvmssrg=$(az group show --name ${azurerm_kubernetes_cluster.aks_c.node_resource_group} --query id --output tsv);     
+     az role assignment create --role "Virtual Machine Contributor" --assignee $aksid --scope ${data.azurerm_resource_group.vnet_rg.id};
+     az role assignment create --role "Virtual Machine Contributor" --assignee $aksid --scope $aksvmssrg;
+     az role assignment create --role "Managed Identity Operator" --assignee $aksid --scope $aksvmssrg
+     
+    EOF
   }
 
   provisioner "local-exec" {

@@ -21,3 +21,5 @@ terraform/terraform.tfstate.backup
 david.values.yaml
 install_instructures.txt
 test.yaml
+
+terraform-aks-azure-cni/.terraform.lock.hcl

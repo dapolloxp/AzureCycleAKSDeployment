@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   creationTimestamp: null
   labels:
@@ -11,7 +11,7 @@ spec:
   selector:
     matchLabels:
       {{- include "cyclecloud.selectorLabels" . | nindent 6 }}
-  strategy: {}
+  serviceName: {{ include "cyclecloud.fullname" . }}
   template:
     metadata:
       annotations:
