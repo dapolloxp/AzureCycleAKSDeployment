@@ -12,5 +12,10 @@ spec:
   - protocol: TCP
     port: {{ .Values.service.port }}
     targetPort: 8443
+    name: webserversslport
+  - protocol: TCP
+    port: 9443
+    targetPort: 9443
+    name: webserverclusterport
   selector:
     {{- include "cyclecloud.selectorLabels" . | nindent 4 }}
