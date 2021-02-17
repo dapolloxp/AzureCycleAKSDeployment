@@ -7,6 +7,7 @@ import re
 import random
 import platform
 from string import ascii_uppercase, ascii_lowercase, digits
+import subprocess
 from subprocess import CalledProcessError, check_output
 from os import path, listdir, chdir, fdopen, remove
 from urllib.request import urlopen, Request
@@ -95,6 +96,19 @@ def generate_password_string():
                         [random.choice(digits) for _ in range(10)])
     random.shuffle(random_pw_chars)
     return ''.join(random_pw_chars)
+
+def reset_cyclecloud_pw(username):
+    reset_pw = subprocess.Popen( [cs_cmd, "reset_access", username],
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, )
+    reset_out, reset_err = reset_pw.communicate( b"yes\n" )
+    print(reset_out)
+    if reset_err:
+        print("Password reset error: %s" % (reset_err))
+    pw = out_split.pop().decode("utf-8")
+    _catch_sys_error([cs_cmd, 'execute', 'update AuthenticatedUser set ForcePasswordReset = false where Name=="cc_admin"'])
+    return pw 
 
   
 def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, application_id, application_secret,
@@ -200,6 +214,10 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
     _catch_sys_error(
         ["/opt/cycle_server/cycle_server", "execute", perms_sql_statement])
 
+    # If using a random password, we need to reset it on each container restart (since we regenerated it above)
+    # But do is AFTER user is created in CC
+    if not password:
+        cyclecloud_admin_pw = reset_cyclecloud_pw(admin_user)
     initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw)
 
     output =  _catch_sys_error(["/usr/local/bin/cyclecloud", "account", "show", "azure"])
@@ -224,7 +242,7 @@ def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw):
     sleep(5)
 
     print("Initializing cylcecloud CLI")
-    _catch_sys_error(["/usr/local/bin/cyclecloud", "initialize", "--loglevel=debug", "--batch",
+    _catch_sys_error(["/usr/local/bin/cyclecloud", "initialize", "--loglevel=debug", "--batch", "--force",
                       "--url=https://localhost:8443", "--verify-ssl=false", "--username=%s" % admin_user, password_flag])
 
 
