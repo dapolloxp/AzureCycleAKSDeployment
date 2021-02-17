@@ -107,7 +107,7 @@ def reset_cyclecloud_pw(username):
     if reset_err:
         print("Password reset error: %s" % (reset_err))
     pw = out_split.pop().decode("utf-8")
-    _catch_sys_error([cs_cmd, 'execute', 'update AuthenticatedUser set ForcePasswordReset = false where Name=="cc_admin"'])
+    _catch_sys_error([cs_cmd, 'execute', 'update AuthenticatedUser set ForcePasswordReset = false where Name=="{}"'.format(username)])
     return pw 
 
   
