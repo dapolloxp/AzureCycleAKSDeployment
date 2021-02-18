@@ -106,8 +106,11 @@ def reset_cyclecloud_pw(username):
     print(reset_out)
     if reset_err:
         print("Password reset error: %s" % (reset_err))
+    out_split = reset_out.rsplit(None, 1)
     pw = out_split.pop().decode("utf-8")
-    _catch_sys_error([cs_cmd, 'execute', 'update AuthenticatedUser set ForcePasswordReset = false where Name=="{}"'.format(username)])
+    print("Disabling forced password reseet for {}".format(username))
+    update_cmd = 'update AuthenticatedUser set ForcePasswordReset = false where Name=="%s"' % (username)
+    _catch_sys_error([cs_cmd, 'execute', update_cmd])
     return pw 
 
   
