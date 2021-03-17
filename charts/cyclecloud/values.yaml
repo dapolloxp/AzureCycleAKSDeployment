@@ -12,8 +12,13 @@ cycle:
   
   uid: 1169
   gid: 1169
-  username: 123
-  password: 123
+  username: cc_admin
+  password: 
+  webServerHostname: 
+  webServerPort: 8080
+  webServerSslPort: 443
+  webServerClusterPort: 9443
+  configureDefaultAccount: true
   storage: 123
   userPubKey: 123
   resourceGroup: 123

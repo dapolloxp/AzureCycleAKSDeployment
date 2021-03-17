@@ -4,18 +4,24 @@ metadata:
   name: {{ include "cyclecloud.fullname" . }}
   labels:
     {{- include "cyclecloud.labels" . | nindent 4 }}
+  # Comment out annotations to create a Public IP
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   type: {{ .Values.service.type }}
   ports:
+  # Enable HTTP port for LetsEncrypt support
+  # - protocol: TCP
+  #   port: 80
+  #   targetPort: {{ .Values.cycle.webServerPort }}
+  #   name: webserverport
   - protocol: TCP
     port: {{ .Values.service.port }}
-    targetPort: 8443
+    targetPort: {{ .Values.cycle.webServerSslPort }}
     name: webserversslport
   - protocol: TCP
     port: 9443
-    targetPort: 9443
+    targetPort: {{ .Values.cycle.webServerClusterPort }}
     name: webserverclusterport
   selector:
     {{- include "cyclecloud.selectorLabels" . | nindent 4 }}

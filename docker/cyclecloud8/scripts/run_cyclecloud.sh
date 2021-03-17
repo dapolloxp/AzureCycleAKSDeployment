@@ -57,10 +57,13 @@ fi
 #     DRYRUN="--dryrun" for testing
 #     NO_DEFAULT_ACCOUNT="--noDefaultAccount" to disable initial CycleCloud account creation
 #     CYCLECLOUD_PASSWORD="" to use a randomized password
+#     CYCLECLOUD_HOSTNAME="X.X.X.X" to use a specific hostname or IP for clusternode-to-cyclecloud connections
 python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" --storageAccount=${CYCLECLOUD_STORAGE} \
-    --resourceGroup=${CYCLECLOUD_RESOURCE_GROUP} ${DRYRUN} ${NO_DEFAULT_ACCOUNT}
+    --resourceGroup=${CYCLECLOUD_RESOURCE_GROUP} ${DRYRUN} ${NO_DEFAULT_ACCOUNT} \
+    --webServerMaxHeapSize=4096M --webServerPort=8080 --webServerSslPort=8443 \
+    --webServerClusterPort=9443 --webServerHostname="${CYCLECLOUD_HOSTNAME}"
 
 
 #keep Container alive permanently

@@ -46,6 +46,15 @@ spec:
           value: "{{ .Values.cycle.userPubKey }}"
         - name: CYCLECLOUD_RESOURCE_GROUP
           value: "{{ .Values.cycle.resourceGroup }}"
+        - name: CYCLECLOUD_HOSTNAME
+          value: "{{ .Values.cycle.webServerHostname }}"
+        {{- if eq .Values.cycle.configureDefaultAccount false }}
+        - name: NO_DEFAULT_ACCOUNT
+          value: "--noDefaultAccount"
+        {{- else }}
+        - name: WILL_CONFIGURE_DEFAULT_ACCOUNT
+          value: "Will configure default CycleCloud account {{.Values.cycle.configureDefaultAccount}} : {{(eq .Values.cycle.configureDefaultAccount false)}}."
+        {{- end }}
         image: "{{ .Values.cycle.containerImage }}"
         resources:
           requests:

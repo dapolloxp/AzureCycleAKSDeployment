@@ -30,6 +30,7 @@ RUN apt update -y \
 RUN groupadd -g ${CS_GID} cycle_server \
     && useradd -u ${CS_UID} -g ${CS_GID} -m -d /opt/cycle_server cycle_server \
     && apt install -y cyclecloud8 \
+    && /opt/cycle_server/cycle_server await_startup \
     && /opt/cycle_server/cycle_server stop \
     && sed -i 's/webServerMaxHeapSize\=2048M/webServerMaxHeapSize\=4096M/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerPort\=8080/webServerPort\=8080/' /opt/cycle_server/config/cycle_server.properties \
