@@ -80,8 +80,9 @@ spec:
           periodSeconds: 10
 
         volumeMounts:
-        - mountPath: "/opt"
+        - mountPath: "/opt/cycle_server/data"
           name: cyclecloud-data-volume
+
       volumes:
       - name: cyclecloud-data-volume
         persistentVolumeClaim:

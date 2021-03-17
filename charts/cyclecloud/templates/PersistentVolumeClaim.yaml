@@ -10,4 +10,4 @@ spec:
   storageClassName: managed-premium-retain
   resources:
     requests:
-      storage: 128Gi
+      storage: {{ .Values.cycle.dataDiskSize }}

@@ -4,7 +4,6 @@ WORKDIR /cs-install
 ENV CS_UID 1169
 ENV CS_GID 1169
 ENV CS_ROOT /opt/cycle_server
-ENV BACKUPS_DIRECTORY /azurecyclecloud
 
 ADD https://aka.ms/downloadazcopy-v10-linux /tmp/azcopy_linux.tar.gz
 
@@ -31,7 +30,8 @@ RUN yum update -y \
     && yum install -y azure-cli \
     && tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/ \
     && mv /tmp/azcopy_linux*/azcopy /usr/local/bin/azcopy \
-    && rm -rf /tmp/azcopy_linux*
+    && rm -rf /tmp/azcopy_linux* \
+    && alternatives --set python /usr/bin/python3
 
 RUN groupadd -g ${CS_GID} cycle_server \
     && useradd -u ${CS_UID} -g ${CS_GID} -m -d /opt/cycle_server cycle_server \
@@ -46,14 +46,19 @@ RUN groupadd -g ${CS_GID} cycle_server \
     && cd /tmp/cyclecloud-cli-installer \
     && /tmp/cyclecloud-cli-installer/install.sh --system \
     && rm -rf /tmp/cyclecloud-cli-installer \
-    && alternatives --set python /usr/bin/python3
-    && echo "Caching cycle_server install in container..." \
-    && mkdir -p /opt_cycle_server \
-    && mv /opt/cycle_server /opt_cycle_server/ \
-    && chmod 777 /opt \
-    && chown cycle_server:cycle_server /opt \
-    && chown -R cycle_server:cycle_server /opt_cycle_server
+    && touch /opt/cycle_server/data/ads/initial_load.marker \
+    && chown cycle_server:cycle_server /opt/cycle_server/data/ads/initial_load.marker
+    
+# Stash a copy the cycle_server/data/ads directory to allow mounting a persistent volume at data/ or data/ads 
+# If an empty volume is mounted, we'll copy the initial data directory back to the volume
+RUN echo "Stashing a copy of the cycle_server data directory..." \
+    && mkdir -p /opt_cycle_server/  \
+    && cp -a /opt/cycle_server/data /opt_cycle_server/  \
+    && chown -R cycle_server:cycle_server /opt_cycle_server  \
+    && ls -ltra  /opt_cycle_server/data/ads/
 
+# NOTE: we remove the "ads" directory to assist in choosing when to 'restore' from backup vs just restarting
+#       this way, if the master.logfile exists, we know we should simply restart
 
 ADD ./scripts /cs-install/scripts
 RUN chown -R cycle_server:cycle_server /cs-install

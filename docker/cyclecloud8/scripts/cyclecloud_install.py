@@ -98,6 +98,7 @@ def generate_password_string():
     return ''.join(random_pw_chars)
 
 def reset_cyclecloud_pw(username):
+
     reset_pw = subprocess.Popen( [cs_cmd, "reset_access", username],
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
@@ -115,7 +116,7 @@ def reset_cyclecloud_pw(username):
 
   
 def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, application_id, application_secret,
-                             admin_user, azure_cloud, accept_terms, password, storageAccount):
+                             admin_user, azure_cloud, accept_terms, password, storageAccount, no_default_account):
 
     print("Setting up azure account in CycleCloud and initializing cyclecloud CLI")
 
@@ -192,18 +193,12 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         account_data.append(login_user)
 
     account_data_file = tmpdir + "/account_data.json"
-    azure_data_file = tmpdir + "/azure_data.json"
 
     with open(account_data_file, 'w') as fp:
         json.dump(account_data, fp)
 
-    with open(azure_data_file, 'w') as fp:
-        json.dump(azure_data, fp)
-
-    print("CycleCloud account data:")
-    print(json.dumps(azure_data))
-
     copy2(account_data_file, cycle_root + "/config/data/")
+    sleep(5)
 
     if not accept_terms:
         # reset the installation status so the splash screen re-appears
@@ -212,10 +207,10 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         _catch_sys_error(
             ["/opt/cycle_server/cycle_server", "execute", sql_statement])
 
-    # set the permissions so that the first login works.
-    perms_sql_statement = 'update Application.Setting set Value = false where Name == \"authorization.check_datastore_permissions\"'
-    _catch_sys_error(
-        ["/opt/cycle_server/cycle_server", "execute", perms_sql_statement])
+    # # set the permissions so that the first login works.
+    # perms_sql_statement = 'update Application.Setting set Value = false where Name == \"authorization.check_datastore_permissions\"'
+    # _catch_sys_error(
+    #     ["/opt/cycle_server/cycle_server", "execute", perms_sql_statement])
 
     # If using a random password, we need to reset it on each container restart (since we regenerated it above)
     # But do is AFTER user is created in CC
@@ -223,18 +218,28 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         cyclecloud_admin_pw = reset_cyclecloud_pw(admin_user)
     initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw)
 
-    output =  _catch_sys_error(["/usr/local/bin/cyclecloud", "account", "show", "azure"])
-    if 'Credentials: azure' in str(output):
-        print("Account \"azure\" already exists.   Skipping account setup...")
+    if no_default_account:
+        print("Skipping default account creation (--noDefaultAccount).") 
     else:
-        # wait until Managed Identity is ready for use before creating the Account
-        if use_managed_identity:
-            get_vm_managed_identity()
+        output =  _catch_sys_error(["/usr/local/bin/cyclecloud", "account", "show", "azure"])
+        if 'Credentials: azure' in str(output):
+            print("Account \"azure\" already exists.   Skipping account setup...")
+        else:
+            azure_data_file = tmpdir + "/azure_data.json"
+            with open(azure_data_file, 'w') as fp:
+                json.dump(azure_data, fp)
 
-        # create the cloud provide account
-        print("Registering Azure subscription in CycleCloud")
-        _catch_sys_error(["/usr/local/bin/cyclecloud", "account",
-                        "create", "-f", azure_data_file])
+            print("CycleCloud account data:")
+            print(json.dumps(azure_data))
+
+            # wait until Managed Identity is ready for use before creating the Account
+            if use_managed_identity:
+                get_vm_managed_identity()
+
+            # create the cloud provide account
+            print("Registering Azure subscription in CycleCloud")
+            _catch_sys_error(["/usr/local/bin/cyclecloud", "account",
+                            "create", "-f", azure_data_file])
 
 
 def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw):
@@ -242,7 +247,6 @@ def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw):
 
     # wait for the data to be imported
     password_flag = ("--password=%s" % cyclecloud_admin_pw)
-    sleep(5)
 
     print("Initializing cylcecloud CLI")
     _catch_sys_error(["/usr/local/bin/cyclecloud", "initialize", "--loglevel=debug", "--batch", "--force",
@@ -520,6 +524,12 @@ def main():
                         dest="resourceGroup",
                         help="The resource group for CycleCloud cluster resources.  Resource Group must already exist.  (Default: same RG as CycleCloud)")
 
+    parser.add_argument("--noDefaultAccount",
+                        dest="no_default_account",
+                        action="store_true",
+                        help="Do not attempt to configure a default CycleCloud Account (useful for CycleClouds managing other subscriptions)")
+                    
+
     args = parser.parse_args()
 
     print("Debugging arguments: %s" % args)
@@ -549,7 +559,8 @@ def main():
 
     cyclecloud_account_setup(vm_metadata, args.useManagedIdentity, args.tenantId, args.applicationId,
                              args.applicationSecret, args.username, args.azureSovereignCloud,
-                             args.acceptTerms, args.password, args.storageAccount)
+                             args.acceptTerms, args.password, args.storageAccount, 
+                             args.no_default_account)
 
     if args.useLetsEncrypt:
         letsEncrypt(args.hostname, vm_metadata["compute"]["location"])

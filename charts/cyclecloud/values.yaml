@@ -7,6 +7,8 @@ azureIdentity:
 
 cycle:
   replicas: 1
+  dataDiskSize: 128Gi
+  backupsDiskSize: 128Gi
   
   uid: 1169
   gid: 1169
