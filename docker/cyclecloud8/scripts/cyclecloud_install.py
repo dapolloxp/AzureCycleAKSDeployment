@@ -98,6 +98,7 @@ def generate_password_string():
     return ''.join(random_pw_chars)
 
 def reset_cyclecloud_pw(username):
+
     reset_pw = subprocess.Popen( [cs_cmd, "reset_access", username],
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
@@ -115,7 +116,8 @@ def reset_cyclecloud_pw(username):
 
   
 def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, application_id, application_secret,
-                             admin_user, azure_cloud, accept_terms, password, storageAccount):
+                             admin_user, azure_cloud, accept_terms, password, storageAccount, no_default_account, 
+                             webserver_port):
 
     print("Setting up azure account in CycleCloud and initializing cyclecloud CLI")
 
@@ -192,18 +194,12 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         account_data.append(login_user)
 
     account_data_file = tmpdir + "/account_data.json"
-    azure_data_file = tmpdir + "/azure_data.json"
 
     with open(account_data_file, 'w') as fp:
         json.dump(account_data, fp)
 
-    with open(azure_data_file, 'w') as fp:
-        json.dump(azure_data, fp)
-
-    print("CycleCloud account data:")
-    print(json.dumps(azure_data))
-
     copy2(account_data_file, cycle_root + "/config/data/")
+    sleep(5)
 
     if not accept_terms:
         # reset the installation status so the splash screen re-appears
@@ -212,41 +208,45 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         _catch_sys_error(
             ["/opt/cycle_server/cycle_server", "execute", sql_statement])
 
-    # set the permissions so that the first login works.
-    perms_sql_statement = 'update Application.Setting set Value = false where Name == \"authorization.check_datastore_permissions\"'
-    _catch_sys_error(
-        ["/opt/cycle_server/cycle_server", "execute", perms_sql_statement])
-
     # If using a random password, we need to reset it on each container restart (since we regenerated it above)
     # But do is AFTER user is created in CC
     if not password:
         cyclecloud_admin_pw = reset_cyclecloud_pw(admin_user)
-    initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw)
+    initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw, webserver_port)
 
-    output =  _catch_sys_error(["/usr/local/bin/cyclecloud", "account", "show", "azure"])
-    if 'Credentials: azure' in str(output):
-        print("Account \"azure\" already exists.   Skipping account setup...")
+    if no_default_account:
+        print("Skipping default account creation (--noDefaultAccount).") 
     else:
-        # wait until Managed Identity is ready for use before creating the Account
-        if use_managed_identity:
-            get_vm_managed_identity()
+        output =  _catch_sys_error(["/usr/local/bin/cyclecloud", "account", "show", "azure"])
+        if 'Credentials: azure' in str(output):
+            print("Account \"azure\" already exists.   Skipping account setup...")
+        else:
+            azure_data_file = tmpdir + "/azure_data.json"
+            with open(azure_data_file, 'w') as fp:
+                json.dump(azure_data, fp)
 
-        # create the cloud provide account
-        print("Registering Azure subscription in CycleCloud")
-        _catch_sys_error(["/usr/local/bin/cyclecloud", "account",
-                        "create", "-f", azure_data_file])
+            print("CycleCloud account data:")
+            print(json.dumps(azure_data))
+
+            # wait until Managed Identity is ready for use before creating the Account
+            if use_managed_identity:
+                get_vm_managed_identity()
+
+            # create the cloud provide account
+            print("Registering Azure subscription in CycleCloud")
+            _catch_sys_error(["/usr/local/bin/cyclecloud", "account",
+                            "create", "-f", azure_data_file])
 
 
-def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw):
+def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw, webserver_port):
     print("Setting up azure account in CycleCloud and initializing cyclecloud CLI")
 
     # wait for the data to be imported
     password_flag = ("--password=%s" % cyclecloud_admin_pw)
-    sleep(5)
 
     print("Initializing cylcecloud CLI")
     _catch_sys_error(["/usr/local/bin/cyclecloud", "initialize", "--loglevel=debug", "--batch", "--force",
-                      "--url=https://localhost:8443", "--verify-ssl=false", "--username=%s" % admin_user, password_flag])
+                      "--url=https://localhost:{}".format(webserver_port), "--verify-ssl=false", "--username=%s" % admin_user, password_flag])
 
 
 def letsEncrypt(fqdn, location):
@@ -340,7 +340,7 @@ def start_cc():
                 raise 
 
 
-def modify_cs_config():
+def modify_cs_config(options):
     print("Editing CycleCloud server system properties file")
     # modify the CS config files
     cs_config_file = cycle_root + "/config/cycle_server.properties"
@@ -350,15 +350,23 @@ def modify_cs_config():
         with open(cs_config_file) as cs_config:
             for line in cs_config:
                 if line.startswith('webServerMaxHeapSize='):
-                    new_config.write('webServerMaxHeapSize=4096M\n')
-                # elif line.startswith('webServerPort='):
-                #     new_config.write('webServerPort=80\n')
-                # elif line.startswith('webServerSslPort='):
-                #     new_config.write('webServerSslPort=443\n')
+                    new_config.write('webServerMaxHeapSize={}\n'.format(options['webServerMaxHeapSize']))
+                elif line.startswith('webServerPort='):
+                    new_config.write('webServerPort={}\n'.format(options['webServerPort']))
+                elif line.startswith('webServerSslPort='):
+                    new_config.write('webServerSslPort={}\n'.format(options['webServerSslPort']))
+                elif line.startswith('webServerClusterPort'):
+                    new_config.write('webServerClusterPort={}\n'.format(options['webServerClusterPort']))
                 elif line.startswith('webServerEnableHttps='):
-                    new_config.write('webServerEnableHttps=true\n')
+                    new_config.write('webServerEnableHttps={}\n'.format(str(options['webServerEnableHttps']).lower()))
+                elif line.startswith('webServerHostname'):
+                    # This isn't generally a default setting, so set it below
+                    continue
                 else:
                     new_config.write(line)
+
+            if 'webServerHostname' in options and options['webServerHostname']:
+                new_config.write('webServerHostname={}\n'.format(options['webServerHostname']))
 
     remove(cs_config_file)
     move(tmp_cs_config_file, cs_config_file)
@@ -478,6 +486,7 @@ def main():
 
     parser.add_argument("--username",
                         dest="username",
+                        default="cc_admin",
                         help="The local admin user for the CycleCloud VM")
 
     parser.add_argument("--hostname",
@@ -506,6 +515,7 @@ def main():
 
     parser.add_argument("--password",
                         dest="password",
+                        default="",
                         help="The password for the CycleCloud UI user")
 
     parser.add_argument("--publickey",
@@ -520,6 +530,36 @@ def main():
                         dest="resourceGroup",
                         help="The resource group for CycleCloud cluster resources.  Resource Group must already exist.  (Default: same RG as CycleCloud)")
 
+    parser.add_argument("--noDefaultAccount",
+                        dest="no_default_account",
+                        action="store_true",
+                        help="Do not attempt to configure a default CycleCloud Account (useful for CycleClouds managing other subscriptions)")
+                    
+    parser.add_argument("--webServerMaxHeapSize",
+                        dest="webServerMaxHeapSize",
+                        default='4096M',
+                        help="CycleCloud max heap")
+
+    parser.add_argument("--webServerPort",
+                        dest="webServerPort",
+                        default=8080,
+                        help="CycleCloud front-end HTTP port")
+
+    parser.add_argument("--webServerSslPort",
+                        dest="webServerSslPort",
+                        default=8443,
+                        help="CycleCloud front-end HTTPS port")
+
+    parser.add_argument("--webServerClusterPort",
+                        dest="webServerClusterPort",
+                        default=9443,
+                        help="CycleCloud cluster/back-end HTTPS port")
+
+    parser.add_argument("--webServerHostname",
+                        dest="webServerHostname",
+                        default="",
+                        help="Over-ride CycleCloud hostname for cluster/back-end connections")
+
     args = parser.parse_args()
 
     print("Debugging arguments: %s" % args)
@@ -528,7 +568,12 @@ def main():
         configure_msft_repos()
         install_pre_req()
         download_install_cc()
-        modify_cs_config()
+        modify_cs_config(options = {'webServerMaxHeapSize': args.webServerMaxHeapSize,
+                                    'webServerPort': args.webServerPort,
+                                    'webServerSslPort': args.webServerSslPort,
+                                    'webServerClusterPort': args.webServerClusterPort,
+                                    'webServerEnableHttps': True,
+                                    'webServerHostname': args.webServerHostname})
 
     start_cc()
 
@@ -549,7 +594,8 @@ def main():
 
     cyclecloud_account_setup(vm_metadata, args.useManagedIdentity, args.tenantId, args.applicationId,
                              args.applicationSecret, args.username, args.azureSovereignCloud,
-                             args.acceptTerms, args.password, args.storageAccount)
+                             args.acceptTerms, args.password, args.storageAccount, 
+                             args.no_default_account, args.webServerSslPort)
 
     if args.useLetsEncrypt:
         letsEncrypt(args.hostname, vm_metadata["compute"]["location"])
