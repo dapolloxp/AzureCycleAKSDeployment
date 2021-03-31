@@ -8,6 +8,8 @@ metadata:
   name: {{ include "cyclecloud.fullname" . }}
 spec:
   replicas: {{ .Values.cycle.replicas }}
+  updateStrategy: 
+    type: "RollingUpdate"
   selector:
     matchLabels:
       {{- include "cyclecloud.selectorLabels" . | nindent 6 }}
@@ -85,7 +87,7 @@ spec:
             port: 8443
             scheme: HTTPS
           failureThreshold: 30
-          initialDelaySeconds: 600
+          initialDelaySeconds: 60
           periodSeconds: 10
 
         volumeMounts:
