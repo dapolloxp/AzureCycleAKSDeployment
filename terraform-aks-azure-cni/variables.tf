@@ -62,7 +62,7 @@ variable "location" {
 
 variable "kubernetes_version" {
     description = "The Kubernetes version to use for the cluster."
-    default =  "1.18.10"
+    default =  "1.19.7"
 }
 
 variable "ssh_key" {
