@@ -165,6 +165,14 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         "RMStorageAccount": storage_account_name,
         "RMStorageContainer": "cyclecloud"
     }
+    distribution_method ={
+        "Category": "system",
+        "Status": "internal",
+        "AdType": "Application.Setting",
+        "Description": "CycleCloud distribution method e.g. marketplace, container, manual.",
+        "Value": "container",
+        "Name": "distribution_method"
+    }
     if use_managed_identity:
         azure_data["AzureRMUseManagedIdentity"] = True
 
@@ -180,6 +188,7 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
     }
     account_data = [
         initial_user,
+        distribution_method,
         app_setting_installation
     ]
 
@@ -249,9 +258,7 @@ def initialize_cyclecloud_cli(admin_user, cyclecloud_admin_pw, webserver_port):
                       "--url=https://localhost:{}".format(webserver_port), "--verify-ssl=false", "--username=%s" % admin_user, password_flag])
 
 
-def letsEncrypt(fqdn, location):
-    # FQDN is assumed to be in the form: hostname.location.cloudapp.azure.com
-    # fqdn = hostname + "." + location + ".cloudapp.azure.com"
+def letsEncrypt(fqdn):
     sleep(60)
     try:
         cmd_list = [cs_cmd, "keystore", "automatic", "--accept-terms", fqdn]
@@ -598,7 +605,7 @@ def main():
                              args.no_default_account, args.webServerSslPort)
 
     if args.useLetsEncrypt:
-        letsEncrypt(args.hostname, vm_metadata["compute"]["location"])
+        letsEncrypt(args.hostname)
 
     #  Create user requires root privileges
     # create_user_credential(args.username, args.publickey)
@@ -610,5 +617,6 @@ if __name__ == "__main__":
     try:
         main()
     except:
-        print("Deployment failed...   Staying alive for DEBUGGING")
+        print("Deployment failed...")
+        raise
 

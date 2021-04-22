@@ -36,11 +36,12 @@ RUN yum update -y \
 RUN groupadd -g ${CS_GID} cycle_server \
     && useradd -u ${CS_UID} -g ${CS_GID} -m -d /opt/cycle_server cycle_server \
     && yum install -y cyclecloud8 \
+    && /opt/cycle_server/cycle_server await_startup \
     && /opt/cycle_server/cycle_server stop \
     && sed -i 's/webServerMaxHeapSize\=2048M/webServerMaxHeapSize\=4096M/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerPort\=8080/webServerPort\=8080/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerSslPort\=8443/webServerSslPort\=8443/' /opt/cycle_server/config/cycle_server.properties \
-    && sed -i 's/webServerEnableHttps\=false/webServerEnableHttps=true/' /opt/cycle_server/config/cycle_server.properties
+    && sed -i 's/webServerEnableHttps\=false/webServerEnableHttps=true/' /opt/cycle_server/config/cycle_server.properties \
     && cd /tmp \
     && unzip /opt/cycle_server/tools/cyclecloud-cli.zip \
     && cd /tmp/cyclecloud-cli-installer \
@@ -57,9 +58,6 @@ RUN echo "Stashing a copy of the cycle_server data directory..." \
     && chown -R cycle_server:cycle_server /opt_cycle_server  \
     && ls -ltra  /opt_cycle_server/data/ads/
 
-# NOTE: we remove the "ads" directory to assist in choosing when to 'restore' from backup vs just restarting
-#       this way, if the master.logfile exists, we know we should simply restart
-
 ADD ./scripts /cs-install/scripts
 RUN chown -R cycle_server:cycle_server /cs-install
 
@@ -67,5 +65,4 @@ RUN chown -R cycle_server:cycle_server /cs-install
 # (NOTE: This disallows use of privileged ports 80, 443
 #        Instead, we'll bind port 8443 and use an AKS Service to port map 443->8443)
 USER cycle_server
-
 
