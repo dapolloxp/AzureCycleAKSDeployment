@@ -16,7 +16,7 @@ cycle:
   password: 
   webServerHostname: 
   webServerPort: 8080
-  webServerSslPort: 443
+  webServerSslPort: 8443
   webServerClusterPort: 9443
   configureDefaultAccount: true
   storage: 123
@@ -27,3 +27,4 @@ cycle:
 service:
   type: LoadBalancer
   port: 443
+
