@@ -42,6 +42,7 @@ RUN groupadd -g ${CS_GID} cycle_server \
     && /tmp/cyclecloud-cli-installer/install.sh --system \
     && rm -rf /tmp/cyclecloud-cli-installer \
     && touch /opt/cycle_server/data/ads/initial_load.marker \
+    && chmod 777 /opt \
     && chown cycle_server:cycle_server /opt/cycle_server/data/ads/initial_load.marker
     
 # Stash a copy the cycle_server/data/ads directory to allow mounting a persistent volume at data/ or data/ads 
