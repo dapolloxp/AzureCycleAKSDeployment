@@ -48,6 +48,12 @@ spec:
           value: "{{ .Values.cycle.userPubKey }}"
         - name: CYCLECLOUD_RESOURCE_GROUP
           value: "{{ .Values.cycle.resourceGroup }}"
+        - name: CYCLECLOUD_WEBSERVER_PORT
+          value: "{{ .Values.cycle.webServerPort }}"
+        - name: CYCLECLOUD_WEBSERVER_SSL_PORT
+          value: "{{ .Values.cycle.webServerHostname }}"
+        - name: CYCLECLOUD_WEBSERVER_CLUSTER_PORT
+          value: "{{ .Values.cycle.webServerClusterPort }}"
         - name: CYCLECLOUD_HOSTNAME
           value: "{{ .Values.cycle.webServerHostname }}"
         {{- if eq .Values.cycle.configureDefaultAccount false }}
