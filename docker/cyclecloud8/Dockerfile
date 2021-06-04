@@ -37,6 +37,9 @@ RUN groupadd -g ${CS_GID} cycle_server \
     && useradd -u ${CS_UID} -g ${CS_GID} -m -d /opt/cycle_server cycle_server \
     && yum install -y cyclecloud8 \
     && /opt/cycle_server/cycle_server await_startup \
+    && rm -f /opt/cycle_server/.ssh/* \
+    && /opt/cycle_server/cycle_server execute 'delete from AuthenticatedUser' \
+    && /opt/cycle_server/cycle_server execute 'delete from Credential' \
     && /opt/cycle_server/cycle_server stop \
     && sed -i 's/webServerMaxHeapSize\=2048M/webServerMaxHeapSize\=4096M/' /opt/cycle_server/config/cycle_server.properties \
     && sed -i 's/webServerPort\=8080/webServerPort\=8080/' /opt/cycle_server/config/cycle_server.properties \
