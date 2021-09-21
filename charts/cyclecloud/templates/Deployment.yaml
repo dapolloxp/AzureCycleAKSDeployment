@@ -51,7 +51,7 @@ spec:
         - name: CYCLECLOUD_WEBSERVER_PORT
           value: "{{ .Values.cycle.webServerPort }}"
         - name: CYCLECLOUD_WEBSERVER_SSL_PORT
-          value: "{{ .Values.cycle.webServerHostname }}"
+          value: "{{ .Values.cycle.webServerSslPort }}"
         - name: CYCLECLOUD_WEBSERVER_CLUSTER_PORT
           value: "{{ .Values.cycle.webServerClusterPort }}"
         - name: CYCLECLOUD_HOSTNAME

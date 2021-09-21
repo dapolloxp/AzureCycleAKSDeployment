@@ -60,10 +60,14 @@ fi
 #     CYCLECLOUD_HOSTNAME="X.X.X.X" to use a specific hostname or IP for clusternode-to-cyclecloud connections
 python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
-    --publickey="${CYCLECLOUD_USER_PUBKEY}" --storageAccount=${CYCLECLOUD_STORAGE} \
+    --publickey="${CYCLECLOUD_USER_PUBKEY}" \
+    --storageAccount=${CYCLECLOUD_STORAGE} \
     --resourceGroup=${CYCLECLOUD_RESOURCE_GROUP} ${DRYRUN} ${NO_DEFAULT_ACCOUNT} \
-    --webServerMaxHeapSize=4096M --webServerPort=8080 --webServerSslPort=8443 \
-    --webServerClusterPort=9443 --webServerHostname="${CYCLECLOUD_HOSTNAME}"
+    --webServerMaxHeapSize=4096M \
+    --webServerPort=${CYCLECLOUD_WEBSERVER_PORT} \
+    --webServerSslPort=${CYCLECLOUD_WEBSERVER_SSL_PORT} \
+    --webServerClusterPort=${CYCLECLOUD_WEBSERVER_CLUSTER_PORT} \
+    --webServerHostname="${CYCLECLOUD_HOSTNAME}"
 
 
 #keep Container alive permanently

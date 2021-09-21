@@ -5,8 +5,8 @@ metadata:
   labels:
     {{- include "cyclecloud.labels" . | nindent 4 }}
   # Comment out annotations to create a Public IP
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  # annotations:
+  #  service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   type: {{ .Values.service.type }}
   ports:
