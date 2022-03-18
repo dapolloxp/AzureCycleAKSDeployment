@@ -283,9 +283,9 @@ def get_vm_metadata():
 
     for _ in range(30):
         print("Fetching metadata")
-        metadata_response = urlopen(metadata_req, timeout=2)
 
         try:
+            metadata_response = urlopen(metadata_req, timeout=2)
             return json.load(metadata_response)
         except ValueError as e:
             print("Failed to get metadata %s" % e)
@@ -304,9 +304,9 @@ def get_vm_managed_identity():
 
     for _ in range(30):
         print("Fetching managed identity")
-        metadata_response = urlopen(metadata_req, timeout=2)
 
         try:
+            metadata_response = urlopen(metadata_req, timeout=2)
             return json.load(metadata_response)
         except ValueError as e:
             print("Failed to get managed identity %s" % e)
