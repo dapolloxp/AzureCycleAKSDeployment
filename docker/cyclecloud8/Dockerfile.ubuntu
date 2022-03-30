@@ -1,4 +1,4 @@
-FROM ubuntu:groovy
+FROM ubuntu:focal
 
 WORKDIR /cs-install
 ENV CS_UID 1169
