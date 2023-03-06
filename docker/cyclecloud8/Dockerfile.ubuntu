@@ -57,6 +57,21 @@ RUN echo "Stashing a copy of the cycle_server data directory..." \
     && chown -R cycle_server:cycle_server /opt_cycle_server  \
     && ls -ltra  /opt_cycle_server/data/ads/
 
+
+RUN echo "Creating mount location and symlinks for data, .ssh, logs" \
+    && mkdir -p /mnt/cycle_server/  \
+    && mkdir -p /mnt/cycle_server/.ssh  \
+    && mkdir -p /mnt/cycle_server/logs  \
+    && chmod 700 /mnt/cycle_server/.ssh \
+    && mv /opt/cycle_server/data /mnt/cycle_server/ \
+    && ln -sf /mnt/cycle_server/data /opt/cycle_server/data \
+    && rm -rf /opt/cycle_server/.ssh \
+    && ln -sf /mnt/cycle_server/.ssh /opt/cycle_server/.ssh \
+    && rm -rf /opt/cycle_server/logs \
+    && ln -sf /mnt/cycle_server/logs /opt/cycle_server/logs \
+    && chown -R cycle_server:cycle_server /mnt/cycle_server
+
+
 ADD ./scripts /cs-install/scripts
 RUN chown -R cycle_server:cycle_server /cs-install
 

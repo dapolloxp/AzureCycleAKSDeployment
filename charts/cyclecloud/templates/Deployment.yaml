@@ -56,6 +56,10 @@ spec:
           value: "{{ .Values.cycle.webServerClusterPort }}"
         - name: CYCLECLOUD_HOSTNAME
           value: "{{ .Values.cycle.webServerHostname }}"
+        - name: CYCLECLOUD_FORCE_DELETE_VMS
+          value: "{{ .Values.cycle.forceDeleteVMsEnabled }}"
+        - name: CYCLECLOUD_FORCE_DELETE_VMSS
+          value: "{{ .Values.cycle.forceDeleteVMSSsEnabled }}"
         {{- if eq .Values.cycle.configureDefaultAccount false }}
         - name: NO_DEFAULT_ACCOUNT
           value: "--noDefaultAccount"
@@ -72,7 +76,7 @@ spec:
         command: ["/bin/bash"]
         securityContext:
           allowPrivilegeEscalation: false  
-        args: ["-c", "chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
+        args: ["-c", "mkdir -p /mnt/cycle_server/data /mnt/cycle_server/logs /mnt/cycle_server/.ssh && chmod 700 /mnt/cycle_server/.ssh && chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
         name: cycle
         ports:
         - containerPort: 8443
@@ -97,7 +101,7 @@ spec:
           periodSeconds: 10
 
         volumeMounts:
-        - mountPath: "/opt/cycle_server/data"
+        - mountPath: "/mnt/cycle_server"
           name: cyclecloud-data-volume
 
       volumes:

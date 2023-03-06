@@ -9,9 +9,11 @@ CS_ROOT="/opt/cycle_server"
 # (Move files within the ads/ directory rather than director itself to allow mounting at ads/)
 if [ ! -f "${CS_ROOT}/data/ads/master.logfile" ]; then
    echo "Moving stashed cyclecloud data from container to mounted data disk on first start..."
-   rm -rf ${CS_ROOT}/data/ads/*
-   mkdir -p ${CS_ROOT}/data/ads
-   mv /opt_cycle_server/data/ads/* ${CS_ROOT}/data/ads/
+   pushd ${CS_ROOT}/data
+   rm -rf ./ads
+   mkdir -p ./ads
+   mv /opt_cycle_server/data/ads/* ./ads/
+   popd
 fi
 
 
@@ -68,6 +70,19 @@ python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \
     --webServerSslPort=${CYCLECLOUD_WEBSERVER_SSL_PORT} \
     --webServerClusterPort=${CYCLECLOUD_WEBSERVER_CLUSTER_PORT} \
     --webServerHostname="${CYCLECLOUD_HOSTNAME}"
+
+
+# Enable force delete if specified
+cat <<EOF > ${CS_ROOT}/config/data/force_delete.txt
+AdType = "Application.Setting"
+Name = "cyclecloud.force_delete.vm"
+Value = ${CYCLECLOUD_FORCE_DELETE_VMS}
+
+AdType = "Application.Setting"
+Name = "cyclecloud.force_delete.vmss"
+Value = ${CYCLECLOUD_FORCE_DELETE_VMSS}
+
+EOF
 
 
 #keep Container alive permanently

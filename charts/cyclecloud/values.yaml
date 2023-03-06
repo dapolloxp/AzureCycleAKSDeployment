@@ -23,6 +23,8 @@ cycle:
   userPubKey: 123
   resourceGroup: 123
   containerImage: 123
+  forceDeleteVMsEnabled : false
+  forceDeleteVMSSsEnabled : false
 
 service:
   type: LoadBalancer
