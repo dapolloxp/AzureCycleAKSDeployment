@@ -16,6 +16,18 @@ if [ ! -f "${CS_ROOT}/data/ads/master.logfile" ]; then
    popd
 fi
 
+if [ -f "$CS_ROOT/logs/catalina.err" ]; then
+
+    mv $CS_ROOT/logs/catalina.err $CS_ROOT/logs/catalina.err.1
+
+fi
+
+if [ -f "$CS_ROOT/logs/catalina.out" ]; then
+
+    mv $CS_ROOT/logs/catalina.out $CS_ROOT/logs/catalina.out.1
+
+fi
+
 
 # If no datastore exists, check if a backup exists and restore
 # GOAL: allow mounting ${CS_ROOT}/data to either persistent or ephemeral disk
