@@ -4,8 +4,9 @@ set -e
 
 CS_ROOT="/opt/cycle_server"
 
-# If CycleCloud data dir was locally stashed, and mounted data dir is empty
-# then this is the first load with a persistent volume, so copy stashed data into place
+
+# If CycleCloud data dir is empty (new persistent volume mount) or corrupt
+# then copy stashed data dir into place
 # (Move files within the ads/ directory rather than director itself to allow mounting at ads/)
 if [ ! -f "${CS_ROOT}/data/ads/master.logfile" ]; then
    echo "Moving stashed cyclecloud data from container to mounted data disk on first start..."
@@ -15,6 +16,13 @@ if [ ! -f "${CS_ROOT}/data/ads/master.logfile" ]; then
    mv /opt_cycle_server/data/ads/* ./ads/
    popd
 fi
+
+# Copy locally stashed CycleCloud work dir to mounted work dir (need to retain
+# previously deployed jetpack and project versions but ensure the current version is staged)
+pushd ${CS_ROOT}
+cp -a /opt_cycle_server/work/* ./work/ 
+popd
+
 
 if [ -f "$CS_ROOT/logs/catalina.err" ]; then
 

@@ -54,20 +54,27 @@ RUN groupadd -g ${CS_GID} cycle_server \
 RUN echo "Stashing a copy of the cycle_server data directory..." \
     && mkdir -p /opt_cycle_server/  \
     && cp -a /opt/cycle_server/data /opt_cycle_server/  \
+    && cp -a /opt/cycle_server/work /opt_cycle_server/  \
     && chown -R cycle_server:cycle_server /opt_cycle_server  \
     && ls -ltra  /opt_cycle_server/data/ads/
 
-
-RUN echo "Creating mount location and symlinks for data, .ssh, logs" \
+# Prepare directory structure for mounting persistent volumes
+# Retain content of data, and work directories
+# Clear content of .ssh and logs directories
+# NOTE: we do not persist the config directory since content may change across upgrades
+#       instead, we configure using container startup script
+RUN echo "Creating mount location and symlinks for data, .ssh, logs, work" \
     && mkdir -p /mnt/cycle_server/  \
+    && mv /opt/cycle_server/data /mnt/cycle_server/ \
+    && mv /opt/cycle_server/work /mnt/cycle_server/ \
+    && rm -rf /opt/cycle_server/.ssh \
+    && rm -rf /opt/cycle_server/logs \
     && mkdir -p /mnt/cycle_server/.ssh  \
     && mkdir -p /mnt/cycle_server/logs  \
     && chmod 700 /mnt/cycle_server/.ssh \
-    && mv /opt/cycle_server/data /mnt/cycle_server/ \
     && ln -sf /mnt/cycle_server/data /opt/cycle_server/data \
-    && rm -rf /opt/cycle_server/.ssh \
+    && ln -sf /mnt/cycle_server/work /opt/cycle_server/work \
     && ln -sf /mnt/cycle_server/.ssh /opt/cycle_server/.ssh \
-    && rm -rf /opt/cycle_server/logs \
     && ln -sf /mnt/cycle_server/logs /opt/cycle_server/logs \
     && chown -R cycle_server:cycle_server /mnt/cycle_server
 
