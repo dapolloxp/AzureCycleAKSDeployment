@@ -1,6 +1,15 @@
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "=3.0.0"
+    }
+  }
+}
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=2.16"
   features {}
 }
 
@@ -39,9 +48,7 @@ resource "azurerm_kubernetes_cluster" "aks_c" {
 
   provisioner "local-exec" {
     # Load credentials to local environment so subsequent kubectl commands can be run
-    command = <<EOS
-      az aks get-credentials --resource-group ${azurerm_resource_group.aks_rg.name} --name ${self.name} --overwrite-existing;
-EOS
+    command = "az aks get-credentials --resource-group ${azurerm_resource_group.aks_rg.name} --name ${self.name} --overwrite-existing"
   }
   provisioner "local-exec" {
     # Load credentials to local environment so subsequent kubectl commands can be run
@@ -57,6 +64,15 @@ EOS
 
   provisioner "local-exec" {
     when = create
+    # if running in PowerShell
+#    interpreter = ["PowerShell" ,"-Command"]
+#    command = <<-EOF
+#     $aksid=$(az aks show -g ${azurerm_resource_group.aks_rg.name} -n ${azurerm_kubernetes_cluster.aks_c.name} --query identityProfile.kubeletidentity.clientId -otsv)
+#     $aksvmssrg=$(az group show --name ${azurerm_kubernetes_cluster.aks_c.node_resource_group} --query id --output tsv)
+#     az role assignment create --role "Virtual Machine Contributor" --assignee $aksid --scope ${data.azurerm_resource_group.vnet_rg.id}
+#     az role assignment create --role "Virtual Machine Contributor" --assignee $aksid --scope $aksvmssrg
+#     az role assignment create --role "Managed Identity Operator" --assignee $aksid --scope $aksvmssrg
+#    EOF
     command = <<EOF
      aksid=$(az aks show -g ${azurerm_resource_group.aks_rg.name} -n ${azurerm_kubernetes_cluster.aks_c.name} --query identityProfile.kubeletidentity.clientId -otsv);
      aksvmssrg=$(az group show --name ${azurerm_kubernetes_cluster.aks_c.node_resource_group} --query id --output tsv);     
