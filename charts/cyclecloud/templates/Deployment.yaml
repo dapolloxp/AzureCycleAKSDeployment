@@ -80,7 +80,7 @@ spec:
         command: ["/bin/bash"]
         securityContext:
           allowPrivilegeEscalation: false  
-        args: ["-c", "mkdir -p /mnt/cycle_server/data /mnt/cycle_server/logs /mnt/cycle_server/.ssh && sed -i \"s/webServerMaxHeapSize\\=.*/webServerMaxHeapSize\\=$CYCLECLOUD_WEBSERVER_MAX_HEAP_SIZE/\" /opt/cycle_server/config/cycle_server.properties && chmod 700 /mnt/cycle_server/.ssh && chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
+        args: ["-c", "mkdir -p /mnt/cycle_server/data /mnt/cycle_server/logs /mnt/cycle_server/.ssh && chmod 700 /mnt/cycle_server/.ssh && chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
         name: cycle
         ports:
         - containerPort: 8443
