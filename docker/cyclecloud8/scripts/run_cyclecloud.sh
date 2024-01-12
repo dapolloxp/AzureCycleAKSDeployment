@@ -80,12 +80,16 @@ fi
 #     NO_DEFAULT_ACCOUNT="--noDefaultAccount" to disable initial CycleCloud account creation
 #     CYCLECLOUD_PASSWORD="" to use a randomized password
 #     CYCLECLOUD_HOSTNAME="X.X.X.X" to use a specific hostname or IP for clusternode-to-cyclecloud connections
+#
+# Special case: JVM Options are complex and difficult to pass through arguments.  
+# Instead, set them in the environment:
+#     CYCLECLOUD_WEBSERVER_JVM_OPTIONS
 python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --resourceGroup=${CYCLECLOUD_RESOURCE_GROUP} ${DRYRUN} ${NO_DEFAULT_ACCOUNT} \
-    --webServerMaxHeapSize=4096M \
+    --webServerMaxHeapSize=${CYCLECLOUD_WEBSERVER_MAX_HEAP_SIZE} \
     --webServerPort=${CYCLECLOUD_WEBSERVER_PORT} \
     --webServerSslPort=${CYCLECLOUD_WEBSERVER_SSL_PORT} \
     --webServerClusterPort=${CYCLECLOUD_WEBSERVER_CLUSTER_PORT} \
