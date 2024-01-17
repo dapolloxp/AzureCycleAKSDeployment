@@ -7,14 +7,15 @@ azureIdentity:
 
 cycle:
   replicas: 1
-  dataDiskSize: 128Gi
-  backupsDiskSize: 128Gi
+  dataDiskSize: 256Gi
+  backupsDiskSize: 256Gi
   
   uid: 1169
   gid: 1169
   username: cc_admin
   password: 
-  webServerMaxHeapSize:
+  webServerJvmOptions:
+  webServerMaxHeapSize: 8192M
   webServerHostname: 
   webServerPort: 8080
   webServerSslPort: 8443

@@ -23,7 +23,7 @@ RUN apt update -y \
     && tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/ \
     && mv /tmp/azcopy_linux*/azcopy /usr/local/bin/azcopy \
     && rm -rf /tmp/azcopy_linux* \
-    && echo "deb https://packages.microsoft.com/repos/cyclecloud bionic main" > /etc/apt/sources.list.d/cyclecloud.list \
+    && echo "deb https://packages.microsoft.com/repos/cyclecloud-insiders bionic main" > /etc/apt/sources.list.d/cyclecloud-insiders.list \
     && apt install -y python3-venv \
     && update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
     && apt -y update

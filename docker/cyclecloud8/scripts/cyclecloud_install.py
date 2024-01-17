@@ -335,7 +335,7 @@ def start_cc():
             print("Error with cmd: %s" % e.cmd)
             print("Output: %s" % e.output)
             raise
-    
+
     _catch_sys_error([cs_cmd, "start"])
 
     # Retry await_startup in case it takes much longer than expected 
@@ -376,6 +376,14 @@ def modify_cs_config(options):
                 elif line.startswith('webServerHostname'):
                     # This isn't generally a default setting, so set it below
                     continue
+                elif line.startswith('webServerJvmOptions='):
+                    # JVM Options are complex and difficult to pass as arguments
+                    #     so for now, we require an environment variable
+                    jvm_options = os.environ.get('CYCLECLOUD_WEBSERVER_JVM_OPTIONS', '')
+                    if jvm_options:
+                        new_config.write('webServerJvmOptions={}\n'.format(jvm_options))
+                    else:
+                        new_config.write(line)
                 else:
                     new_config.write(line)
 
@@ -386,7 +394,9 @@ def modify_cs_config(options):
     move(tmp_cs_config_file, cs_config_file)
 
     #Ensure that the files are created by the cycleserver service user
-    _catch_sys_error(["chown", "-R", "cycle_server.", cycle_root])
+    #   - Recursive chown is not supported if installing as low-priv cycle_server user
+    #_catch_sys_error(["chown", "-R", "cycle_server.", cycle_root])
+    _catch_sys_error(["chown", "cycle_server", cs_config_file])
 
 def install_cc_cli():
     # CLI comes with an install script but that installation is user specific
@@ -553,10 +563,10 @@ def main():
                         dest="no_default_account",
                         action="store_true",
                         help="Do not attempt to configure a default CycleCloud Account (useful for CycleClouds managing other subscriptions)")
-                    
+
     parser.add_argument("--webServerMaxHeapSize",
                         dest="webServerMaxHeapSize",
-                        default='4096M',
+                        default='8192M',
                         help="CycleCloud max heap")
 
     parser.add_argument("--webServerPort",
@@ -587,12 +597,13 @@ def main():
         configure_msft_repos()
         install_pre_req()
         download_install_cc()
-        modify_cs_config(options = {'webServerMaxHeapSize': args.webServerMaxHeapSize,
-                                    'webServerPort': args.webServerPort,
-                                    'webServerSslPort': args.webServerSslPort,
-                                    'webServerClusterPort': args.webServerClusterPort,
-                                    'webServerEnableHttps': True,
-                                    'webServerHostname': args.webServerHostname})
+
+    modify_cs_config(options = {'webServerMaxHeapSize': args.webServerMaxHeapSize,
+                                'webServerPort': args.webServerPort,
+                                'webServerSslPort': args.webServerSslPort,
+                                'webServerClusterPort': args.webServerClusterPort,
+                                'webServerEnableHttps': True,
+                                'webServerHostname': args.webServerHostname})
 
     start_cc()
 
