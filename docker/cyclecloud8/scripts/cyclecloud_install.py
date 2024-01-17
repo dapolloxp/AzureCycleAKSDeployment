@@ -396,7 +396,7 @@ def modify_cs_config(options):
     #Ensure that the files are created by the cycleserver service user
     #   - Recursive chown is not supported if installing as low-priv cycle_server user
     #_catch_sys_error(["chown", "-R", "cycle_server.", cycle_root])
-    _catch_sys_error(["chown", "cycle_server", cs_config_file])
+    _catch_sys_error(["chown", "cycle_server:cycle_server", cs_config_file])
 
 def install_cc_cli():
     # CLI comes with an install script but that installation is user specific
