@@ -598,10 +598,11 @@ def main():
         install_pre_req()
         download_install_cc()
 
+    # Port numbers may not be empty
     modify_cs_config(options = {'webServerMaxHeapSize': args.webServerMaxHeapSize,
-                                'webServerPort': args.webServerPort,
-                                'webServerSslPort': args.webServerSslPort,
-                                'webServerClusterPort': args.webServerClusterPort,
+                                'webServerPort': (args.webServerPort if args.webServerPort else 8080), 
+                                'webServerSslPort': (args.webServerSslPort if qrgs.webServerSslPort else 8443),
+                                'webServerClusterPort': (args.webServerClusterPort if args.webServerClusterPort else 9443),
                                 'webServerEnableHttps': True,
                                 'webServerHostname': args.webServerHostname})
 
