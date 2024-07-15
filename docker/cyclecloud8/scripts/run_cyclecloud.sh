@@ -85,7 +85,7 @@ fi
 # Instead, set them in the environment:
 #     CYCLECLOUD_WEBSERVER_JVM_OPTIONS
 python3 /cs-install/scripts/cyclecloud_install.py --acceptTerms \
-    --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
+    --useWorkloadIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --resourceGroup=${CYCLECLOUD_RESOURCE_GROUP} ${DRYRUN} ${NO_DEFAULT_ACCOUNT} \

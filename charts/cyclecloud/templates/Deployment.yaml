@@ -72,15 +72,14 @@ spec:
         image: "{{ .Values.cycle.containerImage }}"
         resources:
           requests:
-            memory: "20Gi"
+            memory: "32Gi"
             cpu: "8"
           limits:
-            memory: "20Gi"
+            memory: "32Gi"
             cpu: "8"
-        command: ["/bin/bash"]
+        command: ["/bin/bash", "scripts/run_cyclecloud.sh"]
         securityContext:
-          allowPrivilegeEscalation: false  
-        args: ["-c", "mkdir -p /mnt/cycle_server/data /mnt/cycle_server/logs /mnt/cycle_server/.ssh /mnt/cycle_server/work && chmod 700 /mnt/cycle_server/.ssh && chmod +x scripts/run_cyclecloud.sh && ./scripts/run_cyclecloud.sh"]
+          {{- toYaml .Values.securityContext.containerSecurityContext | nindent 10 }}
         name: cycle
         ports:
         - containerPort: 8443
@@ -105,10 +104,47 @@ spec:
           periodSeconds: 10
 
         volumeMounts:
-        - mountPath: "/mnt/cycle_server"
+        - mountPath: "/opt/cycle_server/data"
           name: cyclecloud-data-volume
+          subPath: data
+        - mountPath: "/opt/cycle_server/.ssh"
+          name: cyclecloud-data-volume
+          subPath: ssh_keys
+        - mountPath: "/opt/cycle_server/logs"
+          name: cyclecloud-data-volume
+          subPath: logs
+        - mountPath: "/opt/cycle_server/work"
+          name: cyclecloud-data-volume
+          subPath: work
+        - mountPath: "/tmp/cc_script"
+          name: script-config-volume
+        - mountPath: /etc/config
+          name: config-volume
+        - mountPath: /opt/cycle_server/config/data/disable_metrics_collector.txt
+          name: cc-additional-config
+          subPath: disable_metrics_collector.txt
+        - mountPath: /opt/cycle_server/config/data/disable_backups.txt
+          name: cc-additional-config
+          subPath: disable_backups.txt
+        - mountPath: /cs-install/prometheus_exporter_config.yaml
+          name: prometheus-config-volume
+
 
       volumes:
       - name: cyclecloud-data-volume
         persistentVolumeClaim:
           claimName: {{ include "cyclecloud.fullname" . }}
+      - name: config-volume
+        configMap:
+          name: cc-storage-config
+      - name: script-config-volume
+        configMap:
+          name: cc-script-config
+      - name: cc-additional-config
+        configMap:
+          name: cc-additional-config
+      - name: prometheus-config-volume
+        configMap:
+          name: prometheus-exporter-config
+   
+    

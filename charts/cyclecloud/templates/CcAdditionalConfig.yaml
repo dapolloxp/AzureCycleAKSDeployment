@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cc-additional-config
+data:
+  disable_metrics_collector.txt: |-
+    Name = "plugin.azure.metrics_collector"
+    AdType = "Application.Timer"
+    Disabled = true
+  disable_backups.txt: |-
+    AdType = "Application.BackupPlan"
+    Description = "Standard backup plan"
+    Schedule = "5m,15m,1h,4h,8h,1d/1d"
+    BackupDirectory = "data/backups"
+    Name = "main"
+    Disabled = true

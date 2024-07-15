@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cc-script-config
+data:
+  accinit.py: |-
+    import sys, subprocess, json
+    cfg=sys.argv[1]
+    f=open(cfg, 'r')
+    acc=json.load(f)['Name']
+    x=subprocess.run(['cyclecloud', 'account', 'list'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out=open('/proc/1/fd/1', 'a')
+    out.write(x.stdout.decode())
+    x.check_returncode()
+    y=sys.exit(0) if acc in x.stdout.decode() else subprocess.run(['cyclecloud', 'account', 'create', '-f', cfg], stdout=out, stderr=subprocess.STDOUT)
+    y.check_returncode()

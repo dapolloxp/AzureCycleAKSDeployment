@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  labels:
+    {{- include "cyclecloud.labels" . | nindent 4 }}
+    azure.workload.identity/use: "true"  # Required. Only pods with this label can use workload identity.
+  name: {{ include "cyclecloud.fullname" . }}
+spec:
+  serviceAccountName: "cyclecloud-sa"
+  replicas: {{ .Values.cycle.replicas }}
+  updateStrategy: 
+    type: "RollingUpdate"
+  selector:
+    matchLabels:
+      {{- include "cyclecloud.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "cyclecloud.fullname" . }}
+  template:
+    metadata:
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+        container.seccomp.security.alpha.kubernetes.io/nginx: runtime/default
+      labels:
+        {{- include "cyclecloud.selectorLabels" . | nindent 8 }}
+        azure.workload.identity/use: "true"  # Required. Only pods with this label can use workload identity.
+    spec:
+      serviceAccountName: "cyclecloud-sa"
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+      # Set non-root user id (cycle_server) for volume ownership
+      securityContext:
+        runAsUser: {{ .Values.cycle.uid }}
+        runAsGroup: {{ .Values.cycle.gid }}
+        fsGroup: {{ .Values.cycle.gid }}
+        supplementalGroups: [{{ .Values.cycle.gid }}]
+      containers:
+      - env:
+        - name: CYCLECLOUD_USERNAME
+          value: "{{ .Values.cycle.username }}"
+        - name: CYCLECLOUD_PASSWORD
+          value: "{{ .Values.cycle.password }}"
+        - name: CYCLECLOUD_STORAGE
+          value: "{{ .Values.cycle.storage }}"
+        - name: CYCLECLOUD_USER_PUBKEY
+          value: "{{ .Values.cycle.userPubKey }}"
+        - name: CYCLECLOUD_RESOURCE_GROUP
+          value: "{{ .Values.cycle.resourceGroup }}"
+        - name: CYCLECLOUD_WEBSERVER_JVM_OPTIONS
+          value: "{{ .Values.cycle.webServerJvmOptions }}"
+        - name: CYCLECLOUD_WEBSERVER_MAX_HEAP_SIZE
+          value: "{{ .Values.cycle.webServerMaxHeapSize }}"
+        - name: CYCLECLOUD_WEBSERVER_PORT
+          value: "{{ .Values.cycle.webServerPort }}"
+        - name: CYCLECLOUD_WEBSERVER_SSL_PORT
+          value: "{{ .Values.cycle.webServerSslPort }}"
+        - name: CYCLECLOUD_WEBSERVER_CLUSTER_PORT
+          value: "{{ .Values.cycle.webServerClusterPort }}"
+        - name: CYCLECLOUD_HOSTNAME
+          value: "{{ .Values.cycle.webServerHostname }}"
+        - name: CYCLECLOUD_FORCE_DELETE_VMS
+          value: "{{ .Values.cycle.forceDeleteVMsEnabled }}"
+        - name: CYCLECLOUD_FORCE_DELETE_VMSS
+          value: "{{ .Values.cycle.forceDeleteVMSSsEnabled }}"
+        {{- if eq .Values.cycle.configureDefaultAccount false }}
+        - name: NO_DEFAULT_ACCOUNT
+          value: "--noDefaultAccount"
+        {{- else }}
+        - name: WILL_CONFIGURE_DEFAULT_ACCOUNT
+          value: "Will configure default CycleCloud account {{.Values.cycle.configureDefaultAccount}} : {{(eq .Values.cycle.configureDefaultAccount false)}}."
+        {{- end }}
+        image: "{{ .Values.cycle.containerImage }}"
+        resources:
+          requests:
+            memory: "32Gi"
+            cpu: "8"
+          limits:
+            memory: "32Gi"
+            cpu: "8"
+        command: ["/bin/bash", "scripts/run_cyclecloud.sh"]
+        securityContext:
+          {{- toYaml .Values.securityContext.containerSecurityContext | nindent 10 }}
+        name: cycle
+        ports:
+        - containerPort: 8443
+
+        volumeMounts:
+        - mountPath: "/opt/cycle_server/data"
+          name: cyclecloud-data-volume
+          subPath: data
+        - mountPath: "/opt/cycle_server/.ssh"
+          name: cyclecloud-data-volume
+          subPath: ssh_keys
+        - mountPath: "/opt/cycle_server/logs"
+          name: cyclecloud-data-volume
+          subPath: logs
+        - mountPath: "/opt/cycle_server/work"
+          name: cyclecloud-data-volume
+          subPath: work
+        - mountPath: "/tmp/cc_script"
+          name: script-config-volume
+        - mountPath: /etc/config
+          name: config-volume
+        - mountPath: /opt/cycle_server/config/data/disable_metrics_collector.txt
+          name: cc-additional-config
+          subPath: disable_metrics_collector.txt
+        - mountPath: /opt/cycle_server/config/data/disable_backups.txt
+          name: cc-additional-config
+          subPath: disable_backups.txt
+        - mountPath: /cs-install/prometheus_exporter_config.yaml
+          name: prometheus-config-volume
+
+
+      volumes:
+      - name: cyclecloud-data-volume
+        persistentVolumeClaim:
+          claimName: {{ include "cyclecloud.fullname" . }}
+      - name: config-volume
+        configMap:
+          name: cc-storage-config
+      - name: script-config-volume
+        configMap:
+          name: cc-script-config
+      - name: cc-additional-config
+        configMap:
+          name: cc-additional-config
+      - name: prometheus-config-volume
+        configMap:
+          name: prometheus-exporter-config
+   
+    

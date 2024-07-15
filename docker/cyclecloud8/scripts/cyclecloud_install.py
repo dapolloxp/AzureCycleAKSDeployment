@@ -118,7 +118,7 @@ def reset_cyclecloud_pw(username):
     return pw 
 
   
-def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, application_id, application_secret,
+def cyclecloud_account_setup(vm_metadata, use_managed_identity, use_workload_identity, tenant_id, application_id, application_secret,
                              admin_user, azure_cloud, accept_terms, password, storageAccount, no_default_account, 
                              webserver_port):
 
@@ -151,10 +151,14 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         storage_account_name = storageAccount
     else:
         storage_account_name = 'cyclecloud{}'.format(random_suffix)
-
+    
+    if use_workload_identity:
+        azure_data_workload = get_workload_identity()
+        
     azure_data = {
         "Environment": azure_cloud,
         "AzureRMUseManagedIdentity": use_managed_identity,
+        "AzureRMUseWorkloadIdentity": use_workload_identity,
         "AzureResourceGroup": resource_group,
         "AzureRMApplicationId": application_id,
         "AzureRMApplicationSecret": application_secret,
@@ -178,6 +182,10 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
     }
     if use_managed_identity:
         azure_data["AzureRMUseManagedIdentity"] = True
+    
+    if use_workload_identity:
+        azure_data["AzureRMUseWorkloadIdentity"] = True
+        azure_data.update(azure_data_workload)
 
     app_setting_installation = {
         "AdType": "Application.Setting",
@@ -316,6 +324,24 @@ def get_vm_managed_identity():
         except:
             print("Unable to obtain managed identity after 30 tries")
             raise    
+
+
+def get_workload_identity():
+    # Managed Identity may  not be available immediately at VM startup...
+    # Test/Pause/Retry to see if it gets assigned
+    try:
+        # convert to strinng
+        azure_authority_host = os.environ["AZURE_AUTHORITY_HOST"]
+        azure_tenant_id = os.environ['AZURE_TENANT_ID']
+        azure_client_id = os.environ['AZURE_CLIENT_ID']
+        azure_federated_token_file = os.environ.get('AZURE_FEDERATED_TOKEN_FILE')
+        azure_data_workload = {"AzureRMAuthorityHost": azure_authority_host, "AzureRMTenantId": azure_tenant_id, "AzureRMClientID": azure_client_id, "AzureRMFederatedTokenFile": azure_federated_token_file}
+        return azure_data_workload
+    except KeyError:
+        print("AZURE_AUTHORITY_HOST, AZURE_TENANT_ID, AZURE_CLIENT_ID and AZURE_FEDERATED_TOKEN_FILE environment variables must be set to use workload identity")
+        raise
+    return        
+
 
 def start_cc():
     import glob
@@ -537,6 +563,11 @@ def main():
                         dest="useManagedIdentity",
                         action="store_true",
                         help="Use the first assigned Managed Identity rather than a Service Principle for the default account")
+    
+    parser.add_argument("--useWorkloadIdentity",
+                        dest="useWorkloadIdentity",
+                        action="store_true",
+                        help="Use the first assigned Workload Identity rather than a Service Principle for the default account")
 
     parser.add_argument("--dryrun",
                         dest="dryrun",
@@ -623,7 +654,7 @@ def main():
         print("Cluster resources will be created in resource group: %s" %  args.resourceGroup)
         vm_metadata["compute"]["resourceGroupName"] = args.resourceGroup
 
-    cyclecloud_account_setup(vm_metadata, args.useManagedIdentity, args.tenantId, args.applicationId,
+    cyclecloud_account_setup(vm_metadata, args.useManagedIdentity, args.useWorkloadIdentity, args.tenantId, args.applicationId,
                              args.applicationSecret, args.username, args.azureSovereignCloud,
                              args.acceptTerms, args.password, args.storageAccount, 
                              args.no_default_account, args.webServerSslPort)

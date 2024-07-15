@@ -7,12 +7,12 @@ ENV CS_ROOT /opt/cycle_server
 
 ARG DEBIAN_FRONTEND=noninteractive
 ADD https://aka.ms/downloadazcopy-v10-linux /tmp/azcopy_linux.tar.gz
-
+ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/1.0.1/jmx_prometheus_javaagent-1.0.1.jar /tmp/jmx_prometheus_javaagent-1.0.1.jar
 # hard-coded "bionic" should be replaced with "$(lsb_release -cs)"
 RUN apt clean \
     && apt update -y \
     && apt upgrade -y \
-    && apt install -y  apt-utils openjdk-8-jre-headless vim wget gnupg2 unzip libncurses5 ca-certificates curl apt-transport-https lsb-release
+    && apt install -y  apt-utils openjdk-8-jdk-headless less vim wget gnupg2 unzip libncurses5 ca-certificates curl apt-transport-https lsb-release
 
 
 RUN apt update -y \

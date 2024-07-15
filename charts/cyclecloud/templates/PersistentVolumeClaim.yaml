@@ -7,7 +7,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: managed-premium-retain
+  storageClassName: premium-disk
   resources:
     requests:
       storage: {{ .Values.cycle.dataDiskSize }}
